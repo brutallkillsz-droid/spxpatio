@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-copat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
@@ -159,7 +159,7 @@
             <div class="header"><h1>Centro de Operações - Pátio</h1><div id="relogio">00:00:00</div></div>
             <div class="kpis">
                 <div class="card"><h3>Veículos (Máx: 24)</h3><div class="val" id="count">0</div></div>
-                <div class="card"><h3>Média de SLA</h3><div class="val" id="avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</div></div>
+                <div class="card"><h3>SLA Médio (Turno)</h3><div class="val" id="avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</div></div>
             </div>
             <div id="p-grid" class="patio-grid"></div>
         </div>
@@ -223,6 +223,7 @@
         const TOTAL_VAGAS = 24;
 
         let patioAtivoLocal = []; 
+        let historicoLocal = []; // Agora guardamos o histórico localmente para somar a média do turno
 
         // Escutador do Pátio
         db.collection("patio_ativo").orderBy("vaga", "asc").onSnapshot(snap => {
@@ -259,14 +260,22 @@
             atualizarVagaDisplay(); 
         });
 
-        // Escutador do Histórico
-        db.collection("historico_spx").orderBy("tsSaida", "desc").limit(50).onSnapshot(snap => {
-            document.getElementById('h-list').innerHTML = snap.docs.map(d => {
+        // Escutador do Histórico - SEM LIMITE para calcular a média exata do dia
+        db.collection("historico_spx").orderBy("tsSaida", "desc").onSnapshot(snap => {
+            historicoLocal = [];
+            let html = "";
+            
+            snap.forEach(d => {
                 const r = d.data();
+                historicoLocal.push(r);
+                
                 const cls = r.msTotal > SLA_DANGER ? 'status-danger-tbl' : (r.msTotal > SLA_WARN ? 'status-warn-tbl' : 'status-ok-tbl');
                 const vagaStr = r.vaga ? `#${String(r.vaga).padStart(2, '0')}` : '-';
-                return `<tr><td><strong>${vagaStr}</strong></td><td><strong style="color:#fff">${r.placa}</strong></td><td>${r.motorista}</td><td>${r.entrada}</td><td>${r.saida}</td><td><span class="badge ${cls}">${r.permanencia}</span></td></tr>`;
-            }).join('');
+                html += `<tr><td><strong>${vagaStr}</strong></td><td><strong style="color:#fff">${r.placa}</strong></td><td>${r.motorista}</td><td>${r.entrada}</td><td>${r.saida}</td><td><span class="badge ${cls}">${r.permanencia}</span></td></tr>`;
+            });
+            
+            document.getElementById('h-list').innerHTML = html;
+            atualizarCronometros(); // Força a atualização da média sempre que alguém fizer Check-out
         });
 
         // Lógica da Vaga Gigante no Check-in
@@ -481,9 +490,13 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "SPX_Relatorio_Diario.csv"; link.click();
         }
 
-        // MOTOR NEON
+        // MOTOR NEON (Cálculo do Turno: Ativos + Histórico)
         function atualizarCronometros() {
-            if (patioAtivoLocal.length === 0) {
+            let qAtivos = patioAtivoLocal.length;
+            let qHistorico = historicoLocal.length;
+            let totalQ = qAtivos + qHistorico;
+
+            if (totalQ === 0) {
                 document.getElementById('count').innerText = "0";
                 document.getElementById('avg').innerText = "00:00:00";
                 document.getElementById('avg').style.color = 'var(--neon-green)';
@@ -491,11 +504,13 @@
                 return;
             }
 
-            let q = 0, somaMs = 0; const agora = Date.now();
+            let somaMs = 0; 
+            const agora = Date.now();
             
+            // Soma o tempo dos veículos ativos e atualiza a cor dos cards
             patioAtivoLocal.forEach(v => {
                 const tMs = agora - v.tsEnt;
-                q++; somaMs += tMs;
+                somaMs += tMs;
                 
                 const card = document.getElementById(`card-${v.id}`);
                 const timer = document.getElementById(`timer-${v.id}`);
@@ -513,8 +528,15 @@
                 }
             });
 
-            document.getElementById('count').innerText = q;
-            const mediaMs = somaMs / q;
+            // Soma o tempo dos veículos que já foram finalizados (Histórico)
+            historicoLocal.forEach(h => {
+                somaMs += h.msTotal;
+            });
+
+            // Atualiza o painel
+            document.getElementById('count').innerText = qAtivos; // Quantidade atual nas 24 vagas
+            
+            const mediaMs = somaMs / totalQ;
             const elAvg = document.getElementById('avg');
             elAvg.innerText = msToTime(mediaMs);
             
