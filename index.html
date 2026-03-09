@@ -223,7 +223,7 @@
         const TOTAL_VAGAS = 24;
 
         let patioAtivoLocal = []; 
-        let historicoLocal = []; // Agora guardamos o histórico localmente para somar a média do turno
+        let historicoLocal = []; 
 
         // Escutador do Pátio
         db.collection("patio_ativo").orderBy("vaga", "asc").onSnapshot(snap => {
@@ -260,7 +260,7 @@
             atualizarVagaDisplay(); 
         });
 
-        // Escutador do Histórico - SEM LIMITE para calcular a média exata do dia
+        // Escutador do Histórico 
         db.collection("historico_spx").orderBy("tsSaida", "desc").onSnapshot(snap => {
             historicoLocal = [];
             let html = "";
@@ -275,7 +275,7 @@
             });
             
             document.getElementById('h-list').innerHTML = html;
-            atualizarCronometros(); // Força a atualização da média sempre que alguém fizer Check-out
+            atualizarCronometros(); 
         });
 
         // Lógica da Vaga Gigante no Check-in
@@ -362,8 +362,9 @@
                 };
                 reader.readAsText(file, 'UTF-8');
             } catch (error) {
+                // CORREÇÃO: AGORA ELE VAI MOSTRAR O ERRO REAL DO FIREBASE
                 msg.style.color = "var(--neon-red)";
-                msg.innerText = "ERRO AO PROCESSAR!";
+                msg.innerText = "ERRO: " + error.message;
                 btn.disabled = false;
             }
         }
@@ -424,7 +425,9 @@
                     }
                 }
             } catch (error) {
-                msg.style.color = 'var(--neon-red)'; msg.innerText = "ERRO DE CONEXÃO!";
+                // CORREÇÃO: AGORA ELE VAI MOSTRAR O ERRO REAL DO FIREBASE
+                msg.style.color = 'var(--neon-red)'; 
+                msg.innerText = "ERRO: " + error.message;
             }
             btn.disabled = false;
             input.value = ''; input.focus();
@@ -460,7 +463,9 @@
                     msg.style.color = 'var(--neon-red)'; msg.innerText = "NÃO ESTÁ NO PÁTIO!";
                 }
             } catch (error) {
-                msg.style.color = 'var(--neon-red)'; msg.innerText = "ERRO DE CONEXÃO!";
+                // CORREÇÃO: AGORA ELE VAI MOSTRAR O ERRO REAL DO FIREBASE
+                msg.style.color = 'var(--neon-red)'; 
+                msg.innerText = "ERRO: " + error.message;
             }
             btn.disabled = false;
             input.value = ''; input.focus();
@@ -490,7 +495,7 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "SPX_Relatorio_Diario.csv"; link.click();
         }
 
-        // MOTOR NEON (Cálculo do Turno: Ativos + Histórico)
+        // MOTOR NEON 
         function atualizarCronometros() {
             let qAtivos = patioAtivoLocal.length;
             let qHistorico = historicoLocal.length;
@@ -507,7 +512,6 @@
             let somaMs = 0; 
             const agora = Date.now();
             
-            // Soma o tempo dos veículos ativos e atualiza a cor dos cards
             patioAtivoLocal.forEach(v => {
                 const tMs = agora - v.tsEnt;
                 somaMs += tMs;
@@ -528,13 +532,11 @@
                 }
             });
 
-            // Soma o tempo dos veículos que já foram finalizados (Histórico)
             historicoLocal.forEach(h => {
                 somaMs += h.msTotal;
             });
 
-            // Atualiza o painel
-            document.getElementById('count').innerText = qAtivos; // Quantidade atual nas 24 vagas
+            document.getElementById('count').innerText = qAtivos; 
             
             const mediaMs = somaMs / totalQ;
             const elAvg = document.getElementById('avg');
@@ -561,4 +563,3 @@
     </script>
 </body>
 </html>
-
