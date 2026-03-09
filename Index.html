@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPX - Terminal de Comando MG-04</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #080c14; 
+            --surface: #111827;  
+            --sidebar-bg: #03060a; 
+            --border: #1f2937;
+            
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+            
+            --primary: #ff5a36; 
+            --primary-glow: rgba(255, 90, 54, 0.4);
+            
+            --neon-green: #39ff14;
+            --neon-yellow: #ffe600;
+            --neon-red: #ff073a;
+            
+            --font-text: 'Space Grotesk', sans-serif;
+            --font-tech: 'Rajdhani', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: var(--font-text); 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+            display: flex; height: 100vh; overflow: hidden; 
+        }
+
+        /* --- Menu Lateral --- */
+        .sidebar { width: 250px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px 0; z-index: 10; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+        .sidebar h2 { text-align: center; color: var(--primary); font-family: var(--font-tech); font-size: 1.6rem; margin-bottom: 35px; letter-spacing: 2px; text-shadow: 0 0 10px var(--primary-glow); }
+        .nav-btn { background: none; border: none; color: var(--text-muted); padding: 15px 25px; text-align: left; font-size: 0.95rem; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent; font-family: var(--font-text); font-weight: 500; letter-spacing: 0.5px;}
+        .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.03); }
+        .nav-btn.active { color: #fff; border-left-color: var(--primary); background: linear-gradient(90deg, rgba(255, 90, 54, 0.1) 0%, transparent 100%); font-weight: 600; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
+
+        /* --- Área Principal --- */
+        .main { flex: 1; padding: 25px 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .header h1 { font-size: 1.5rem; font-weight: 600; color: #fff; letter-spacing: 1px; }
+        #relogio { font-family: var(--font-tech); font-size: 2rem; color: var(--primary); background: var(--surface); padding: 5px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 0 15px rgba(0,0,0,0.5); letter-spacing: 2px; text-shadow: 0 0 8px var(--primary-glow); }
+
+        /* --- Cards de KPI --- */
+        .kpis { display: flex; gap: 15px; margin-bottom: 25px; }
+        .card { background: var(--surface); padding: 12px 18px; border-radius: 10px; border-top: 2px solid var(--primary); flex: 0 1 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .card h3 { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 1px; }
+        .card .val { font-family: var(--font-tech); font-size: 2rem; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+
+        /* --- GRID DO PÁTIO (Compacto para 17") --- */
+        .patio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 15px; padding-bottom: 30px; }
+        .vaga-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; position: relative; transition: all 0.3s ease; }
+
+        .vaga-card.ok { border-color: rgba(57, 255, 20, 0.4); box-shadow: 0 0 8px rgba(57, 255, 20, 0.1), inset 0 0 8px rgba(57, 255, 20, 0.05); }
+        .vaga-card.ok .vc-vaga, .vaga-card.ok .vc-timer { color: var(--neon-green); text-shadow: 0 0 8px rgba(57, 255, 20, 0.6); }
+
+        .vaga-card.warn { border-color: var(--neon-yellow); background: linear-gradient(180deg, rgba(255, 230, 0, 0.05) 0%, var(--surface) 100%); box-shadow: 0 0 12px rgba(255, 230, 0, 0.2), inset 0 0 12px rgba(255, 230, 0, 0.1); }
+        .vaga-card.warn .vc-vaga, .vaga-card.warn .vc-timer { color: var(--neon-yellow); text-shadow: 0 0 10px rgba(255, 230, 0, 0.6); }
+
+        .vaga-card.danger { border-color: var(--neon-red); background: linear-gradient(180deg, rgba(255, 7, 58, 0.1) 0%, var(--surface) 100%); animation: neon-pulse 1.5s infinite alternate; }
+        .vaga-card.danger .vc-vaga, .vaga-card.danger .vc-timer { color: var(--neon-red); text-shadow: 0 0 12px rgba(255, 7, 58, 0.8); }
+
+        @keyframes neon-pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 7, 58, 0.3), inset 0 0 10px rgba(255, 7, 58, 0.2); }
+            100% { box-shadow: 0 0 20px rgba(255, 7, 58, 0.6), inset 0 0 20px rgba(255, 7, 58, 0.4); }
+        }
+
+        .vc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+        .vc-vaga { font-family: var(--font-tech); font-size: 1.6rem; font-weight: 700; line-height: 1; }
+        .vc-placa { font-size: 0.95rem; font-weight: 600; background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); letter-spacing: 1px; color: #fff; }
+        .vc-body { display: flex; flex-direction: column; gap: 4px; }
+        .vc-body strong { color: #e2e8f0; font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .vc-body span { font-size: 0.75rem; color: var(--text-muted); }
+        .vc-footer { text-align: center; margin-top: 2px; }
+        .vc-timer { font-family: var(--font-tech); font-size: 2.2rem; font-weight: 700; letter-spacing: 1px; }
+
+        /* --- Tabelas Dark --- */
+        .table-wrap { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #0b111a; color: var(--text-muted); padding: 12px 20px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; color: #cbd5e1; }
+        
+        .badge { font-family: var(--font-tech); font-size: 1.1rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; border: 1px solid; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .status-ok-tbl { color: var(--neon-green); border-color: rgba(57,255,20,0.3); background: rgba(57,255,20,0.05); }
+        .status-warn-tbl { color: var(--neon-yellow); border-color: rgba(255,230,0,0.3); background: rgba(255,230,0,0.05); }
+        .status-danger-tbl { color: var(--neon-red); border-color: rgba(255,7,58,0.3); background: rgba(255,7,58,0.05); }
+
+        /* --- Formulários Base --- */
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .box { background: var(--surface); padding: 40px; border-radius: 16px; max-width: 450px; margin: 30px auto; text-align: center; border: 1px solid var(--border); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .box h2 { font-size: 1.5rem; margin-bottom: 5px; }
+        
+        input[type="text"] { font-family: var(--font-tech); width: 100%; padding: 15px; font-size: 2rem; background: #05080d; border: 1px solid var(--border); border-radius: 10px; color: var(--neon-green); text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; outline: none; transition: 0.3s; text-shadow: 0 0 5px rgba(57,255,20,0.3); }
+        input[type="text"]:focus { border-color: var(--neon-green); box-shadow: 0 0 15px rgba(57,255,20,0.2); }
+        
+        input[type="file"] { width: 100%; padding: 15px; background: #05080d; border: 1px dashed var(--text-muted); border-radius: 8px; color: var(--text-muted); margin-bottom: 20px; font-family: var(--font-text); font-size: 0.9rem; }
+        
+        .btn { background: var(--primary); color: #fff; border: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
+        .btn:hover:not(:disabled) { background: #ff7454; box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-2px); }
+        .btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+        /* --- EXCLUSIVO: AMPLIAÇÃO DO CARD DE CHECK-IN --- */
+        #in .box { max-width: 650px; padding: 60px 50px; }
+        #in .vaga-livre-display { font-size: 5.5rem; margin: 15px 0 35px 0; }
+        #in input[type="text"] { font-size: 2.8rem; padding: 22px; margin-bottom: 30px; border-radius: 12px; }
+        #in .btn { font-size: 1.2rem; padding: 20px 30px; border-radius: 10px; }
+
+        /* --- TEXTO NEON GIGANTE PARA A VAGA DISPONÍVEL --- */
+        .vaga-livre-label { font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: -5px; margin-top: 15px;}
+        .vaga-livre-display {
+            font-family: var(--font-tech);
+            font-weight: 700;
+            color: var(--neon-green);
+            text-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
+            line-height: 1;
+            letter-spacing: 2px;
+            animation: pulse-vaga 2s infinite alternate;
+        }
+        @keyframes pulse-vaga {
+            0% { text-shadow: 0 0 10px rgba(57, 255, 20, 0.4); }
+            100% { text-shadow: 0 0 25px rgba(57, 255, 20, 0.8), 0 0 40px rgba(57, 255, 20, 0.4); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SPX MG-04</h2>
+        <button class="nav-btn active" onclick="show('dash')">Dashboard Neon</button>
+        <button class="nav-btn" onclick="show('in')">Check-in (Entrada)</button>
+        <button class="nav-btn" onclick="show('out')">Check-out (Saída)</button>
+        <button class="nav-btn" onclick="show('hist')">Histórico Cloud</button>
+        <div style="flex:1"></div>
+        <button class="nav-btn" onclick="show('cfg')">Sistema Diário</button>
+    </div>
+
+    <div class="main">
+        <div id="dash" class="view active">
+            <div class="header"><h1>Centro de Operações - Pátio</h1><div id="relogio">00:00:00</div></div>
+            <div class="kpis">
+                <div class="card"><h3>Veículos (Máx: 24)</h3><div class="val" id="count">0</div></div>
+                <div class="card"><h3>Média de SLA</h3><div class="val" id="avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</div></div>
+            </div>
+            <div id="p-grid" class="patio-grid"></div>
+        </div>
+
+        <div id="in" class="view">
+            <div class="box">
+                <h2>Entrada Roteada</h2>
+                
+                <div class="vaga-livre-label">DIRECIONAR MOTORISTA PARA:</div>
+                <div id="next-vaga" class="vaga-livre-display">--</div>
+
+                <input type="text" id="in-id" placeholder="BIPAR ID" autofocus onkeydown="if(event.key==='Enter') doIn()">
+                <button class="btn" id="btn-in" onclick="doIn()">Confirmar Entrada</button>
+                <div id="in-msg" style="margin-top:20px; font-weight:700; font-size:1.1rem; line-height: 1.4;"></div>
+            </div>
+        </div>
+
+        <div id="out" class="view">
+            <div class="box">
+                <h2>Check-out SLA</h2>
+                <p style="margin-bottom:20px; font-size:0.85rem; color:var(--text-muted)">Finaliza o tempo e arquiva na nuvem.</p>
+                <input type="text" id="out-id" placeholder="BIPAR ID" onkeydown="if(event.key==='Enter') doOut()">
+                <button class="btn" id="btn-out" onclick="doOut()">Confirmar Saída</button>
+                <div id="out-msg" style="margin-top:20px; font-weight:700; font-size:1.1rem;"></div>
+            </div>
+        </div>
+
+        <div id="hist" class="view">
+            <div class="header"><h1>Auditoria de SLA (Diário)</h1><button onclick="exportCSV()" class="btn" style="width:auto; padding: 10px 20px;">Exportar .CSV</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Vaga</th><th>Placa</th><th>Motorista</th><th>Entrada</th><th>Saída</th><th>SLA Final</th></tr></thead><tbody id="h-list"></tbody></table></div>
+        </div>
+
+        <div id="cfg" class="view">
+            <div class="box">
+                <h2 style="color:var(--neon-red); text-shadow: 0 0 10px rgba(255,7,58,0.4);">Reset de Turno</h2>
+                <p style="margin-bottom:20px; font-size:0.85rem; color:var(--text-muted)">Atenção: Subir novo arquivo limpará os registros atuais para o novo dia.</p>
+                <input type="file" id="csv-file">
+                <button class="btn" id="btn-import" onclick="importCSVCloud()">Zerar e Atualizar Banco</button>
+                <div id="cfg-msg" style="margin-top:20px; font-weight:700; font-size:1rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CHAVE DO FIREBASE DO DAVID ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAag1jI5CM0dQf468_vjiVl50xIE-vnA5g",
+            authDomain: "controle-de-patio-62f46.firebaseapp.com",
+            projectId: "controle-de-patio-62f46",
+            storageBucket: "controle-de-patio-62f46.firebasestorage.app",
+            messagingSenderId: "146095527514",
+            appId: "1:146095527514:web:10576ee961f455eb8eaa63",
+            measurementId: "G-H822KLGWJG"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const SLA_WARN = 900000;  // 15m
+        const SLA_DANGER = 990000; // 16m30s
+        const TOTAL_VAGAS = 24;
+
+        let patioAtivoLocal = []; 
+
+        // Escutador do Pátio
+        db.collection("patio_ativo").orderBy("vaga", "asc").onSnapshot(snap => {
+            patioAtivoLocal = [];
+            let html = "";
+            
+            snap.forEach(doc => {
+                const v = doc.data();
+                v.id = doc.id;
+                patioAtivoLocal.push(v);
+                
+                const numVaga = String(v.vaga).padStart(2, '0');
+                
+                html += `
+                    <div class="vaga-card ok" id="card-${v.id}">
+                        <div class="vc-header">
+                            <div class="vc-vaga">#${numVaga}</div>
+                            <div class="vc-placa">${v.placa}</div>
+                        </div>
+                        <div class="vc-body">
+                            <strong>${v.motorista}</strong>
+                            <span>Entrou: ${v.hEnt}</span>
+                        </div>
+                        <div class="vc-footer">
+                            <div class="vc-timer" id="timer-${v.id}">--:--:--</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('p-grid').innerHTML = html || '<div style="grid-column: 1 / -1; text-align:center; padding:60px; color:var(--text-muted); font-size:1.2rem; font-weight: 500;">Pátio Operacional Vazio</div>';
+            
+            atualizarCronometros(); 
+            atualizarVagaDisplay(); 
+        });
+
+        // Escutador do Histórico
+        db.collection("historico_spx").orderBy("tsSaida", "desc").limit(50).onSnapshot(snap => {
+            document.getElementById('h-list').innerHTML = snap.docs.map(d => {
+                const r = d.data();
+                const cls = r.msTotal > SLA_DANGER ? 'status-danger-tbl' : (r.msTotal > SLA_WARN ? 'status-warn-tbl' : 'status-ok-tbl');
+                const vagaStr = r.vaga ? `#${String(r.vaga).padStart(2, '0')}` : '-';
+                return `<tr><td><strong>${vagaStr}</strong></td><td><strong style="color:#fff">${r.placa}</strong></td><td>${r.motorista}</td><td>${r.entrada}</td><td>${r.saida}</td><td><span class="badge ${cls}">${r.permanencia}</span></td></tr>`;
+            }).join('');
+        });
+
+        // Lógica da Vaga Gigante no Check-in
+        function atualizarVagaDisplay() {
+            const display = document.getElementById('next-vaga');
+            if(!display) return;
+
+            const vagasOcupadas = patioAtivoLocal.map(v => v.vaga);
+            let vagaLivre = null;
+            for(let i = 1; i <= TOTAL_VAGAS; i++) {
+                if(!vagasOcupadas.includes(i)) { vagaLivre = i; break; }
+            }
+
+            if(vagaLivre === null) {
+                display.innerText = "LOTADO";
+                display.style.color = "var(--neon-red)";
+                display.style.textShadow = "0 0 15px rgba(255, 7, 58, 0.6)";
+            } else {
+                display.innerText = `VAGA ${String(vagaLivre).padStart(2, '0')}`;
+                display.style.color = "var(--neon-green)";
+                display.style.textShadow = "0 0 15px rgba(57, 255, 20, 0.6)";
+            }
+        }
+
+        async function clearCollection(collectionPath) {
+            const qs = await db.collection(collectionPath).get();
+            let batches = []; let currentBatch = db.batch(); let count = 0;
+            qs.forEach(doc => {
+                currentBatch.delete(doc.ref); count++;
+                if (count === 500) { batches.push(currentBatch); currentBatch = db.batch(); count = 0; }
+            });
+            if (count > 0) batches.push(currentBatch);
+            for (let b of batches) await b.commit();
+        }
+
+        async function importCSVCloud() {
+            const file = document.getElementById('csv-file').files[0];
+            const msg = document.getElementById('cfg-msg');
+            const btn = document.getElementById('btn-import');
+            if(!file) { msg.style.color = "var(--neon-yellow)"; msg.innerText = "Selecione o arquivo CSV."; return; }
+
+            msg.style.color = "var(--neon-yellow)";
+            msg.innerText = "Limpando registros antigos...";
+            btn.disabled = true;
+
+            try {
+                await clearCollection("patio_ativo");
+                await clearCollection("historico_spx");
+                await clearCollection("base_motoristas");
+
+                msg.innerText = "Subindo nova carga de dados...";
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const linhas = e.target.result.split(/\r?\n/);
+                    let sep = linhas[0].includes(';') ? ';' : ',';
+                    let chunks = []; let currentChunk = []; let count = 0;
+
+                    linhas.slice(1).forEach(l => {
+                        const c = l.split(sep);
+                        if(c[0] && c[0].trim() !== "") {
+                            currentChunk.push({
+                                id: c[0].trim().toUpperCase(),
+                                driver: c[1]?.replace(/["']/g, '').trim() || "Sem Nome",
+                                placa: c[45]?.replace(/["']/g, '').trim().toUpperCase() || c[c.length-1]?.trim().toUpperCase()
+                            });
+                            count++;
+                            if(currentChunk.length === 450) { chunks.push(currentChunk); currentChunk = []; }
+                        }
+                    });
+                    if(currentChunk.length > 0) chunks.push(currentChunk);
+
+                    for (const chunk of chunks) {
+                        const batch = db.batch();
+                        chunk.forEach(data => {
+                            const ref = db.collection("base_motoristas").doc(data.id);
+                            batch.set(ref, { driver: data.driver, placa: data.placa });
+                        });
+                        await batch.commit();
+                    }
+                    msg.style.color = "var(--neon-green)";
+                    msg.innerText = `SISTEMA PRONTO! ${count} MOTORISTAS.`;
+                    btn.disabled = false;
+                };
+                reader.readAsText(file, 'UTF-8');
+            } catch (error) {
+                msg.style.color = "var(--neon-red)";
+                msg.innerText = "ERRO AO PROCESSAR!";
+                btn.disabled = false;
+            }
+        }
+
+        function playBip() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 1200; gain.gain.value = 0.05;
+            osc.start(); setTimeout(() => osc.stop(), 100);
+        }
+
+        // Check-in
+        async function doIn() {
+            const input = document.getElementById('in-id');
+            const btn = document.getElementById('btn-in');
+            const id = input.value.trim().toUpperCase();
+            const msg = document.getElementById('in-msg');
+            
+            if(!id) return;
+            btn.disabled = true;
+
+            try {
+                const patioDoc = await db.collection("patio_ativo").doc(id).get();
+                if(patioDoc.exists) {
+                    msg.style.color = 'var(--neon-yellow)'; msg.innerText = "ALERTA: JÁ ESTÁ NO PÁTIO!";
+                } else {
+                    const baseDoc = await db.collection("base_motoristas").doc(id).get();
+                    if(baseDoc.exists) {
+                        
+                        const vagasOcupadas = patioAtivoLocal.map(v => v.vaga);
+                        let vagaLivre = null;
+                        for(let i = 1; i <= TOTAL_VAGAS; i++) {
+                            if(!vagasOcupadas.includes(i)) { vagaLivre = i; break; }
+                        }
+
+                        if(vagaLivre === null) {
+                            msg.style.color = 'var(--neon-red)'; 
+                            msg.innerText = "PÁTIO LOTADO! AGUARDE SAÍDA.";
+                        } else {
+                            const driverData = baseDoc.data();
+                            const agora = new Date();
+                            
+                            await db.collection("patio_ativo").doc(id).set({
+                                placa: driverData.placa, 
+                                motorista: driverData.driver,
+                                vaga: vagaLivre,
+                                hEnt: agora.toLocaleTimeString('pt-BR'), 
+                                tsEnt: agora.getTime()
+                            });
+                            
+                            playBip();
+                            msg.style.color = 'var(--neon-green)'; 
+                            msg.innerHTML = `ENTRADA CONCLUÍDA!<br><span style="color:#fff; font-size: 0.9rem;">PLACA: ${driverData.placa} | MOTORISTA: ${driverData.driver}</span>`;
+                        }
+                    } else {
+                        msg.style.color = 'var(--neon-red)'; msg.innerText = "ID NÃO ENCONTRADO NA BASE!";
+                    }
+                }
+            } catch (error) {
+                msg.style.color = 'var(--neon-red)'; msg.innerText = "ERRO DE CONEXÃO!";
+            }
+            btn.disabled = false;
+            input.value = ''; input.focus();
+        }
+
+        // Check-out
+        async function doOut() {
+            const input = document.getElementById('out-id');
+            const btn = document.getElementById('btn-out');
+            const id = input.value.trim().toUpperCase();
+            const msg = document.getElementById('out-msg');
+            
+            if(!id) return;
+            btn.disabled = true;
+
+            try {
+                const doc = await db.collection("patio_ativo").doc(id).get();
+                if(doc.exists) {
+                    const v = doc.data(); const agora = new Date(); const tMs = agora.getTime() - v.tsEnt;
+                    await db.collection("historico_spx").add({
+                        placa: v.placa, motorista: v.motorista, 
+                        vaga: v.vaga, entrada: v.hEnt,
+                        saida: agora.toLocaleTimeString('pt-BR'), permanencia: msToTime(tMs), 
+                        msTotal: tMs, tsSaida: agora.getTime()
+                    });
+                    
+                    await db.collection("patio_ativo").doc(id).delete();
+                    
+                    playBip();
+                    msg.style.color = 'var(--neon-green)'; 
+                    msg.innerHTML = `SAÍDA CONFIRMADA: <span style="color:#fff">${v.placa}</span>`;
+                } else {
+                    msg.style.color = 'var(--neon-red)'; msg.innerText = "NÃO ESTÁ NO PÁTIO!";
+                }
+            } catch (error) {
+                msg.style.color = 'var(--neon-red)'; msg.innerText = "ERRO DE CONEXÃO!";
+            }
+            btn.disabled = false;
+            input.value = ''; input.focus();
+        }
+
+        function show(id) { 
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); 
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            event.target.classList.add('active'); 
+            const focusId = id === 'in' ? 'in-id' : (id === 'out' ? 'out-id' : null);
+            if(focusId) setTimeout(() => document.getElementById(focusId).focus(), 100);
+        }
+        
+        function msToTime(ms) { 
+            let s = Math.floor((ms/1000)%60), m = Math.floor((ms/(1000*60))%60), h = Math.floor((ms/(1000*60*60))%24);
+            return [h,m,s].map(v => String(v).padStart(2,'0')).join(':');
+        }
+
+        function exportCSV() {
+            let csv = "Vaga;Placa;Motorista;Entrada;Saida;SLA\n";
+            document.querySelectorAll('#h-list tr').forEach(tr => {
+                const cols = tr.querySelectorAll('td');
+                if(cols.length > 0) csv += Array.from(cols).map(c => c.innerText).join(';') + '\n';
+            });
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "SPX_Relatorio_Diario.csv"; link.click();
+        }
+
+        // MOTOR NEON
+        function atualizarCronometros() {
+            if (patioAtivoLocal.length === 0) {
+                document.getElementById('count').innerText = "0";
+                document.getElementById('avg').innerText = "00:00:00";
+                document.getElementById('avg').style.color = 'var(--neon-green)';
+                document.getElementById('avg').style.textShadow = '0 0 8px rgba(57,255,20,0.5)';
+                return;
+            }
+
+            let q = 0, somaMs = 0; const agora = Date.now();
+            
+            patioAtivoLocal.forEach(v => {
+                const tMs = agora - v.tsEnt;
+                q++; somaMs += tMs;
+                
+                const card = document.getElementById(`card-${v.id}`);
+                const timer = document.getElementById(`timer-${v.id}`);
+                
+                if (card && timer) {
+                    timer.innerText = msToTime(tMs);
+                    
+                    if (tMs > SLA_DANGER) {
+                        card.className = 'vaga-card danger';
+                    } else if (tMs > SLA_WARN) {
+                        card.className = 'vaga-card warn';
+                    } else {
+                        card.className = 'vaga-card ok';
+                    }
+                }
+            });
+
+            document.getElementById('count').innerText = q;
+            const mediaMs = somaMs / q;
+            const elAvg = document.getElementById('avg');
+            elAvg.innerText = msToTime(mediaMs);
+            
+            if (mediaMs > SLA_DANGER) {
+                elAvg.style.color = 'var(--neon-red)';
+                elAvg.style.textShadow = '0 0 10px rgba(255,7,58,0.6)';
+            } else if (mediaMs > SLA_WARN) {
+                elAvg.style.color = 'var(--neon-yellow)';
+                elAvg.style.textShadow = '0 0 10px rgba(255,230,0,0.6)';
+            } else {
+                elAvg.style.color = 'var(--neon-green)';
+                elAvg.style.textShadow = '0 0 10px rgba(57,255,20,0.6)';
+            }
+        }
+
+        setInterval(() => {
+            document.getElementById('relogio').innerText = new Date().toLocaleTimeString('pt-BR');
+            if (document.getElementById('dash').classList.contains('active')) {
+                atualizarCronometros();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
