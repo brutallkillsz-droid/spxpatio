@@ -102,6 +102,11 @@
         .status-warn-tbl { color: var(--neon-yellow); border-color: rgba(255,230,0,0.3); background: rgba(255,230,0,0.05); }
         .status-danger-tbl { color: var(--neon-red); border-color: rgba(255,7,58,0.3); background: rgba(255,7,58,0.05); }
 
+        /* --- KPI do Histórico --- */
+        .hist-kpi { background: var(--bg-color); border: 1px solid var(--border); padding: 6px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-left: 3px solid var(--primary); }
+        .hist-kpi span { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .hist-kpi strong { font-family: var(--font-tech); font-size: 1.6rem; letter-spacing: 1px; transition: 0.3s; }
+
         /* --- Formulários Base --- */
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.3s ease; }
@@ -159,7 +164,7 @@
             <div class="header"><h1>Centro de Operações - Pátio</h1><div id="relogio">00:00:00</div></div>
             <div class="kpis">
                 <div class="card"><h3>Veículos (Máx: 24)</h3><div class="val" id="count">0</div></div>
-                <div class="card"><h3>SLA Médio (Turno)</h3><div class="val" id="avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</div></div>
+                <div class="card"><h3>SLA Médio (Turno Completo)</h3><div class="val" id="avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</div></div>
             </div>
             <div id="p-grid" class="patio-grid"></div>
         </div>
@@ -188,7 +193,16 @@
         </div>
 
         <div id="hist" class="view">
-            <div class="header"><h1>Auditoria de SLA (Diário)</h1><button onclick="exportCSV()" class="btn" style="width:auto; padding: 10px 20px;">Exportar .CSV</button></div>
+            <div class="header">
+                <h1>Auditoria de SLA (Diário)</h1>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="hist-kpi">
+                        <span>Média Final (Saídas):</span>
+                        <strong id="hist-avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</strong>
+                    </div>
+                    <button onclick="exportCSV()" class="btn" style="width:auto; padding: 10px 20px;">Exportar .CSV</button>
+                </div>
+            </div>
             <div class="table-wrap"><table><thead><tr><th>Vaga</th><th>Placa</th><th>Motorista</th><th>Entrada</th><th>Saída</th><th>SLA Final</th></tr></thead><tbody id="h-list"></tbody></table></div>
         </div>
 
@@ -204,7 +218,7 @@
     </div>
 
     <script>
-        // --- CHAVE DO FIREBASE DO DAVID ---
+        // --- CHAVE DO FIREBASE DA SPX MG-04 ---
         const firebaseConfig = {
             apiKey: "AIzaSyAag1jI5CM0dQf468_vjiVl50xIE-vnA5g",
             authDomain: "controle-de-patio-62f46.firebaseapp.com",
@@ -260,14 +274,16 @@
             atualizarVagaDisplay(); 
         });
 
-        // Escutador do Histórico 
+        // Escutador do Histórico (Gera Tabela e atualiza o novo Card de SLA Final)
         db.collection("historico_spx").orderBy("tsSaida", "desc").onSnapshot(snap => {
             historicoLocal = [];
             let html = "";
+            let somaHist = 0; // Variável para somar o tempo apenas do histórico
             
             snap.forEach(d => {
                 const r = d.data();
                 historicoLocal.push(r);
+                somaHist += r.msTotal; // Acumula o tempo para o card de auditoria
                 
                 const cls = r.msTotal > SLA_DANGER ? 'status-danger-tbl' : (r.msTotal > SLA_WARN ? 'status-warn-tbl' : 'status-ok-tbl');
                 const vagaStr = r.vaga ? `#${String(r.vaga).padStart(2, '0')}` : '-';
@@ -275,6 +291,25 @@
             });
             
             document.getElementById('h-list').innerHTML = html;
+            
+            // --- ATUALIZA O CARD DE MÉDIA FINAL (SLA FINAL) NA ABA HISTÓRICO ---
+            const mediaHist = historicoLocal.length > 0 ? somaHist / historicoLocal.length : 0;
+            const elHistAvg = document.getElementById('hist-avg');
+            
+            if (elHistAvg) {
+                elHistAvg.innerText = msToTime(mediaHist);
+                if (mediaHist > SLA_DANGER) {
+                    elHistAvg.style.color = 'var(--neon-red)';
+                    elHistAvg.style.textShadow = '0 0 10px rgba(255,7,58,0.5)';
+                } else if (mediaHist > SLA_WARN) {
+                    elHistAvg.style.color = 'var(--neon-yellow)';
+                    elHistAvg.style.textShadow = '0 0 10px rgba(255,230,0,0.5)';
+                } else {
+                    elHistAvg.style.color = 'var(--neon-green)';
+                    elHistAvg.style.textShadow = '0 0 10px rgba(57,255,20,0.5)';
+                }
+            }
+
             atualizarCronometros(); 
         });
 
@@ -362,7 +397,6 @@
                 };
                 reader.readAsText(file, 'UTF-8');
             } catch (error) {
-                // CORREÇÃO: AGORA ELE VAI MOSTRAR O ERRO REAL DO FIREBASE
                 msg.style.color = "var(--neon-red)";
                 msg.innerText = "ERRO: " + error.message;
                 btn.disabled = false;
@@ -425,7 +459,6 @@
                     }
                 }
             } catch (error) {
-                // CORREÇÃO: AGORA ELE VAI MOSTRAR O ERRO REAL DO FIREBASE
                 msg.style.color = 'var(--neon-red)'; 
                 msg.innerText = "ERRO: " + error.message;
             }
@@ -463,7 +496,6 @@
                     msg.style.color = 'var(--neon-red)'; msg.innerText = "NÃO ESTÁ NO PÁTIO!";
                 }
             } catch (error) {
-                // CORREÇÃO: AGORA ELE VAI MOSTRAR O ERRO REAL DO FIREBASE
                 msg.style.color = 'var(--neon-red)'; 
                 msg.innerText = "ERRO: " + error.message;
             }
@@ -495,7 +527,7 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "SPX_Relatorio_Diario.csv"; link.click();
         }
 
-        // MOTOR NEON 
+        // MOTOR NEON (Cálculo do Turno: Ativos + Histórico)
         function atualizarCronometros() {
             let qAtivos = patioAtivoLocal.length;
             let qHistorico = historicoLocal.length;
