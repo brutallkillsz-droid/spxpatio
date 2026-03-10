@@ -117,6 +117,7 @@
         
         input[type="text"] { font-family: var(--font-tech); width: 100%; padding: 15px; font-size: 2rem; background: #05080d; border: 1px solid var(--border); border-radius: 10px; color: var(--neon-green); text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; outline: none; transition: 0.3s; text-shadow: 0 0 5px rgba(57,255,20,0.3); }
         input[type="text"]:focus { border-color: var(--neon-green); box-shadow: 0 0 15px rgba(57,255,20,0.2); }
+        input[type="text"]:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border); }
         
         input[type="file"] { width: 100%; padding: 15px; background: #05080d; border: 1px dashed var(--text-muted); border-radius: 8px; color: var(--text-muted); margin-bottom: 20px; font-family: var(--font-text); font-size: 0.9rem; }
         
@@ -124,19 +125,23 @@
         .btn:hover:not(:disabled) { background: #ff7454; box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-2px); }
         .btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
-        /* --- EXCLUSIVO: AMPLIAÇÃO DO CARD DE CHECK-IN --- */
-        #in .box { max-width: 650px; padding: 60px 50px; }
-        #in .vaga-livre-display { font-size: 5.5rem; margin: 15px 0 35px 0; }
-        #in input[type="text"] { font-size: 2.8rem; padding: 22px; margin-bottom: 30px; border-radius: 12px; }
-        #in .btn { font-size: 1.2rem; padding: 20px 30px; border-radius: 10px; }
+        /* --- EXCLUSIVO: AMPLIAÇÃO DOS CARDS DE CHECK-IN E CHECK-OUT --- */
+        #in .box, #out .box { max-width: 650px; padding: 60px 50px; }
+        #in h2, #out h2 { font-size: 2.2rem; margin-bottom: 10px; }
+        #out p { font-size: 1.1rem; margin-bottom: 45px; }
+        #in input[type="text"], #out input[type="text"] { font-size: 2.8rem; padding: 22px; margin-bottom: 30px; border-radius: 12px; }
+        #in .btn, #out .btn { font-size: 1.2rem; padding: 20px 30px; border-radius: 10px; }
+        #out-msg, #in-msg { margin-top: 25px; font-weight: 700; font-size: 1.2rem; line-height: 1.4; min-height: 50px; }
 
         /* --- TEXTO NEON GIGANTE PARA A VAGA DISPONÍVEL --- */
-        .vaga-livre-label { font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: -5px; margin-top: 15px;}
+        .vaga-livre-label { font-size: 1.1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: -5px; margin-top: 25px;}
         .vaga-livre-display {
             font-family: var(--font-tech);
+            font-size: 5.5rem;
             font-weight: 700;
             color: var(--neon-green);
             text-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
+            margin: 15px 0 45px 0;
             line-height: 1;
             letter-spacing: 2px;
             animation: pulse-vaga 2s infinite alternate;
@@ -178,17 +183,17 @@
 
                 <input type="text" id="in-id" placeholder="BIPAR ID" autofocus onkeydown="if(event.key==='Enter') doIn()">
                 <button class="btn" id="btn-in" onclick="doIn()">Confirmar Entrada</button>
-                <div id="in-msg" style="margin-top:20px; font-weight:700; font-size:1.1rem; line-height: 1.4;"></div>
+                <div id="in-msg"></div>
             </div>
         </div>
 
         <div id="out" class="view">
             <div class="box">
                 <h2>Check-out SLA</h2>
-                <p style="margin-bottom:20px; font-size:0.85rem; color:var(--text-muted)">Finaliza o tempo e arquiva na nuvem.</p>
+                <p>Finaliza o tempo de permanência e arquiva na nuvem da base.</p>
                 <input type="text" id="out-id" placeholder="BIPAR ID" onkeydown="if(event.key==='Enter') doOut()">
                 <button class="btn" id="btn-out" onclick="doOut()">Confirmar Saída</button>
-                <div id="out-msg" style="margin-top:20px; font-weight:700; font-size:1.1rem;"></div>
+                <div id="out-msg"></div>
             </div>
         </div>
 
@@ -274,16 +279,16 @@
             atualizarVagaDisplay(); 
         });
 
-        // Escutador do Histórico (Gera Tabela e atualiza o novo Card de SLA Final)
+        // Escutador do Histórico
         db.collection("historico_spx").orderBy("tsSaida", "desc").onSnapshot(snap => {
             historicoLocal = [];
             let html = "";
-            let somaHist = 0; // Variável para somar o tempo apenas do histórico
+            let somaHist = 0; 
             
             snap.forEach(d => {
                 const r = d.data();
                 historicoLocal.push(r);
-                somaHist += r.msTotal; // Acumula o tempo para o card de auditoria
+                somaHist += r.msTotal; 
                 
                 const cls = r.msTotal > SLA_DANGER ? 'status-danger-tbl' : (r.msTotal > SLA_WARN ? 'status-warn-tbl' : 'status-ok-tbl');
                 const vagaStr = r.vaga ? `#${String(r.vaga).padStart(2, '0')}` : '-';
@@ -292,7 +297,6 @@
             
             document.getElementById('h-list').innerHTML = html;
             
-            // --- ATUALIZA O CARD DE MÉDIA FINAL (SLA FINAL) NA ABA HISTÓRICO ---
             const mediaHist = historicoLocal.length > 0 ? somaHist / historicoLocal.length : 0;
             const elHistAvg = document.getElementById('hist-avg');
             
@@ -313,7 +317,6 @@
             atualizarCronometros(); 
         });
 
-        // Lógica da Vaga Gigante no Check-in
         function atualizarVagaDisplay() {
             const display = document.getElementById('next-vaga');
             if(!display) return;
@@ -411,7 +414,7 @@
             osc.start(); setTimeout(() => osc.stop(), 100);
         }
 
-        // Check-in
+        // --- CHECK-IN COM DELAY DE 3 SEGUNDOS ---
         async function doIn() {
             const input = document.getElementById('in-id');
             const btn = document.getElementById('btn-in');
@@ -419,7 +422,10 @@
             const msg = document.getElementById('in-msg');
             
             if(!id) return;
+            
+            // TRAVA O SISTEMA PARA EVITAR BIP DUPLO
             btn.disabled = true;
+            input.disabled = true;
 
             try {
                 const patioDoc = await db.collection("patio_ativo").doc(id).get();
@@ -428,7 +434,6 @@
                 } else {
                     const baseDoc = await db.collection("base_motoristas").doc(id).get();
                     if(baseDoc.exists) {
-                        
                         const vagasOcupadas = patioAtivoLocal.map(v => v.vaga);
                         let vagaLivre = null;
                         for(let i = 1; i <= TOTAL_VAGAS; i++) {
@@ -462,11 +467,17 @@
                 msg.style.color = 'var(--neon-red)'; 
                 msg.innerText = "ERRO: " + error.message;
             }
-            btn.disabled = false;
-            input.value = ''; input.focus();
+            
+            // LIBERA O SISTEMA APÓS 3 SEGUNDOS
+            setTimeout(() => {
+                btn.disabled = false;
+                input.disabled = false;
+                input.value = ''; 
+                input.focus();
+            }, 3000);
         }
 
-        // Check-out
+        // --- CHECK-OUT COM DELAY DE 3 SEGUNDOS ---
         async function doOut() {
             const input = document.getElementById('out-id');
             const btn = document.getElementById('btn-out');
@@ -474,7 +485,10 @@
             const msg = document.getElementById('out-msg');
             
             if(!id) return;
+            
+            // TRAVA O SISTEMA PARA EVITAR BIP DUPLO
             btn.disabled = true;
+            input.disabled = true;
 
             try {
                 const doc = await db.collection("patio_ativo").doc(id).get();
@@ -499,8 +513,14 @@
                 msg.style.color = 'var(--neon-red)'; 
                 msg.innerText = "ERRO: " + error.message;
             }
-            btn.disabled = false;
-            input.value = ''; input.focus();
+            
+            // LIBERA O SISTEMA APÓS 3 SEGUNDOS
+            setTimeout(() => {
+                btn.disabled = false;
+                input.disabled = false;
+                input.value = ''; 
+                input.focus();
+            }, 3000);
         }
 
         function show(id) { 
@@ -527,7 +547,7 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "SPX_Relatorio_Diario.csv"; link.click();
         }
 
-        // MOTOR NEON (Cálculo do Turno: Ativos + Histórico)
+        // MOTOR NEON 
         function atualizarCronometros() {
             let qAtivos = patioAtivoLocal.length;
             let qHistorico = historicoLocal.length;
