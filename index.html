@@ -280,23 +280,45 @@
         let patioAtivoLocal = []; 
         let historicoLocal = []; 
         
-        // Globais da Câmera
+        // Globais da Câmera e Áudio
         let lastScanned = null; 
         let scanTimeout = null;
         let html5QrCode = null;
+        let audioCtx = null;
 
-        // --- BIPE SONORO ---
-        function playBeep() {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.frequency.value = 880; gain.gain.value = 0.1;
-            osc.start(); setTimeout(() => osc.stop(), 150);
+        // --- SISTEMA DE ÁUDIO DESBLOQUEADO PARA CELULAR ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
-        // --- MOTOR DO SCANNER OTIMIZADO E CORRIGIDO ---
+        function playBeep() {
+            if (audioCtx) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); 
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = 880; // Frequência aguda do laser
+                gain.gain.value = 0.5; // Volume mais alto
+                osc.start(); 
+                setTimeout(() => osc.stop(), 150);
+            }
+            
+            // Ativa a vibração do celular (150 milissegundos)
+            if (navigator.vibrate) {
+                navigator.vibrate(150);
+            }
+        }
+
+        // --- MOTOR DO SCANNER COM BIPE E VIBRAÇÃO ---
         function startScanner(elementId, inputId) {
+            // Destrava o áudio do celular assim que o usuário clica no botão
+            initAudio();
+            
             document.getElementById(elementId).style.display = 'block';
             
             if (html5QrCode) {
@@ -312,19 +334,17 @@
         function iniciarCameraTraseira(elementId, inputId) {
             html5QrCode = new Html5Qrcode(elementId);
             
-            // Retornamos à configuração simples e direta que não causa conflitos com o navegador mobile
             const config = { 
                 fps: 10, 
                 qrbox: { width: 300, height: 150 }
             };
 
-            // O erro foi removido (a tentativa de forçar {video: {width...}}). Usamos apenas "environment"
             html5QrCode.start({ facingMode: "environment" }, config, (text) => {
                 const id = text.toUpperCase().trim();
                 
                 if (id !== lastScanned) {
                     lastScanned = id;
-                    playBeep(); 
+                    playBeep(); // <--- Toca o som e vibra o celular
                     
                     document.getElementById(inputId).value = id;
                     
@@ -335,7 +355,7 @@
                     scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
                 }
             }).catch(err => {
-                alert("Erro ao abrir a câmera: " + err);
+                alert("Erro ao abrir a câmera. Verifique as permissões do navegador.");
                 console.error(err);
             });
         }
@@ -445,7 +465,6 @@
             for (let b of batches) await b.commit();
         }
 
-        // --- CORREÇÃO DA IMPORTAÇÃO COM TRATAMENTO DE ERROS ---
         async function importCSVCloud() {
             const file = document.getElementById('csv-file').files[0];
             const msg = document.getElementById('cfg-msg');
