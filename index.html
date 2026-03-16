@@ -51,28 +51,25 @@
         /* --- BRANDING SPX GESTÃO (DESIGN SHOPEE NEON) --- */
         .sidebar h2 { 
             text-align: center; 
-            color: #fff; /* Fundo do texto */
-            /* Fonte Modern Shopee style */
+            color: #fff; 
             font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", "Helvetica", "Arial", sans-serif; 
             font-size: 1.8rem; 
             font-weight: 700;
             margin-bottom: 35px; 
             letter-spacing: 0.5px; 
-            text-transform: none; /* Mantém a caixa mista */
+            text-transform: none; 
             
-            /* DEGRADÊ INTERNO NEON LARANJA SHOPEE */
             background: linear-gradient(135deg, #ff5a36 0%, #ff8c3a 50%, #ff5a36 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-fill-color: transparent;
 
-            /* BRILHO NEON EXTERNO E SOMBRA INTERNA (INSET) */
             text-shadow: 
-                0 0 10px rgba(255, 90, 54, 0.8), /* Brilho neon intenso */
-                0 0 25px rgba(255, 140, 58, 0.4), /* Brilho mais suave */
-                0 2px 0 rgba(0, 0, 0, 0.5), /* Profundidade */
-                inset 0 1px 2px rgba(255, 255, 255, 0.2); /* Sombra interna leve p/ dar volume */
+                0 0 10px rgba(255, 90, 54, 0.8), 
+                0 0 25px rgba(255, 140, 58, 0.4), 
+                0 2px 0 rgba(0, 0, 0, 0.5), 
+                inset 0 1px 2px rgba(255, 255, 255, 0.2); 
         }
 
         .nav-btn { background: none; border: none; color: var(--text-muted); padding: 15px 25px; text-align: left; font-size: 0.95rem; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent; font-family: var(--font-text); font-weight: 500; letter-spacing: 0.5px;}
@@ -196,7 +193,7 @@
         <div id="dash" class="view active">
             <div class="header"><h1>Centro de Operações - Pátio</h1><div id="relogio">00:00:00</div></div>
             <div class="kpis">
-                <div class="card"><h3>Veículos (Máx: 24)</h3><div class="val" id="count">0</div></div>
+                <div class="card"><h3>Veículos (Máx: 100)</h3><div class="val" id="count">0</div></div>
                 <div class="card"><h3>SLA Médio (Turno Completo)</h3><div class="val" id="avg" style="color:var(--neon-green); text-shadow: 0 0 8px rgba(57,255,20,0.5);">00:00:00</div></div>
             </div>
             <div id="p-grid" class="patio-grid"></div>
@@ -267,7 +264,9 @@
 
         const SLA_WARN = 900000;  // 15m
         const SLA_DANGER = 990000; // 16m30s
-        const TOTAL_VAGAS = 24;
+        
+        // ATUALIZADO PARA 100 VAGAS
+        const TOTAL_VAGAS = 100;
 
         let patioAtivoLocal = []; 
         let historicoLocal = []; 
@@ -282,6 +281,7 @@
                 v.id = doc.id;
                 patioAtivoLocal.push(v);
                 
+                // Formatação para até 3 dígitos se necessário (ex: 001, 024, 100), mas padStart(2) atende de 01 a 99
                 const numVaga = String(v.vaga).padStart(2, '0');
                 
                 html += `
@@ -442,7 +442,7 @@
             osc.start(); setTimeout(() => osc.stop(), 100);
         }
 
-        // --- CHECK-IN COM DELAY DE 3 SEGUNDOS (TRAVA BIP DUPLO) ---
+        // --- CHECK-IN COM DELAY DE 3 SEGUNDOS ---
         async function doIn() {
             const input = document.getElementById('in-id');
             const btn = document.getElementById('btn-in');
@@ -458,7 +458,7 @@
             try {
                 const patioDoc = await db.collection("patio_ativo").doc(id).get();
                 if(patioDoc.exists) {
-                    msg.style.color = 'var(--neon-yellow)'; msg.innerText = "ALERTA: VEÍCULO JÁ NO PÁTIO!";
+                    msg.style.color = 'var(--neon-yellow)'; msg.innerText = "ALERTA: JÁ ESTÁ NO PÁTIO!";
                 } else {
                     const baseDoc = await db.collection("base_motoristas").doc(id).get();
                     if(baseDoc.exists) {
@@ -505,7 +505,7 @@
             }, 3000);
         }
 
-        // --- CHECK-OUT COM DELAY DE 3 SEGUNDOS (TRAVA BIP DUPLO) ---
+        // --- CHECK-OUT COM DELAY DE 3 SEGUNDOS ---
         async function doOut() {
             const input = document.getElementById('out-id');
             const btn = document.getElementById('btn-out');
