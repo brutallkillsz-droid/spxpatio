@@ -295,7 +295,7 @@
             osc.start(); setTimeout(() => osc.stop(), 150);
         }
 
-        // --- MOTOR DO SCANNER OTIMIZADO PARA CÓDIGO DE BARRAS LOGÍSTICO E RESOLUÇÃO HD ---
+        // --- MOTOR DO SCANNER OTIMIZADO E CORRIGIDO ---
         function startScanner(elementId, inputId) {
             document.getElementById(elementId).style.display = 'block';
             
@@ -312,22 +312,16 @@
         function iniciarCameraTraseira(elementId, inputId) {
             html5QrCode = new Html5Qrcode(elementId);
             
-            // Configuração Otimizada: Sem limite rígido de formato para não bloquear leituras da Shopee
+            // Retornamos à configuração simples e direta que não causa conflitos com o navegador mobile
             const config = { 
-                fps: 10, // Menos FPS dá tempo do celular focar as linhas do código de barras
-                qrbox: { width: window.innerWidth > 400 ? 300 : 250, height: 150 }
+                fps: 10, 
+                qrbox: { width: 300, height: 150 }
             };
 
-            // Forçando a câmera traseira e pedindo resolução HD para melhorar a nitidez
-            const cameraConfig = {
-                facingMode: "environment",
-                video: { width: { ideal: 1280 }, height: { ideal: 720 } }
-            };
-
-            html5QrCode.start(cameraConfig, config, (text) => {
+            // O erro foi removido (a tentativa de forçar {video: {width...}}). Usamos apenas "environment"
+            html5QrCode.start({ facingMode: "environment" }, config, (text) => {
                 const id = text.toUpperCase().trim();
                 
-                // Trava Antiduplicidade de 2 segundos para o mesmo código
                 if (id !== lastScanned) {
                     lastScanned = id;
                     playBeep(); 
@@ -341,21 +335,8 @@
                     scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
                 }
             }).catch(err => {
-                // Fallback caso o celular não suporte o pedido em HD
-                html5QrCode.start({ facingMode: "environment" }, config, (text) => {
-                    const id = text.toUpperCase().trim();
-                    if (id !== lastScanned) {
-                        lastScanned = id;
-                        playBeep(); 
-                        document.getElementById(inputId).value = id;
-                        if(inputId === 'in-id') doIn(); else doOut();
-                        if(scanTimeout) clearTimeout(scanTimeout);
-                        scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
-                    }
-                }).catch(err2 => {
-                    alert("Erro ao acessar a câmera traseira. Dê permissão ao navegador.");
-                    console.error(err2);
-                });
+                alert("Erro ao abrir a câmera: " + err);
+                console.error(err);
             });
         }
 
