@@ -15,7 +15,7 @@
 
     <style>
         :root {
-            --bg-color: #080c14; --surface: #111827;  --sidebar-bg: #03060a; --border: #1f2937;
+            --bg-color: #080c14; --surface: #111827; --sidebar-bg: #03060a; --border: #1f2937;
             --text-main: #f8fafc; --text-muted: #64748b;
             --primary: #ff5a36; --primary-glow: rgba(255, 90, 54, 0.4);
             --neon-green: #39ff14; --neon-yellow: #ffe600; --neon-red: #ff073a;
@@ -29,72 +29,53 @@
             background-size: 30px 30px; display: flex; height: 100vh; overflow: hidden; 
         }
 
-        .sidebar { width: 250px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px 0; z-index: 10; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+        .sidebar { width: 250px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px 0; z-index: 10; }
         .sidebar h2 { 
-            text-align: center; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "San Francisco", sans-serif; 
+            text-align: center; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
             font-size: 1.8rem; font-weight: 700; margin-bottom: 35px; background: linear-gradient(135deg, #ff5a36 0%, #ff8c3a 50%, #ff5a36 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 10px rgba(255, 90, 54, 0.8);
         }
 
-        .nav-btn { background: none; border: none; color: var(--text-muted); padding: 15px 25px; text-align: left; font-size: 0.95rem; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent; font-family: var(--font-text); }
+        .nav-btn { background: none; border: none; color: var(--text-muted); padding: 15px 25px; text-align: left; font-size: 0.95rem; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent; }
         .nav-btn.active { color: #fff; border-left-color: var(--primary); background: linear-gradient(90deg, rgba(255, 90, 54, 0.1) 0%, transparent 100%); }
 
         .main { flex: 1; padding: 25px 40px; overflow-y: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         #relogio { font-family: var(--font-tech); font-size: 2rem; color: var(--primary); background: var(--surface); padding: 5px 20px; border-radius: 8px; border: 1px solid var(--border); }
 
-        .kpis { display: flex; gap: 15px; margin-bottom: 25px; }
-        .card { background: var(--surface); padding: 12px 18px; border-radius: 10px; border-top: 2px solid var(--primary); flex: 0 1 200px; }
-        .card h3 { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-        .card .val { font-family: var(--font-tech); font-size: 2rem; font-weight: 700; }
-
         .patio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 15px; padding-bottom: 30px; }
         .vaga-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; transition: all 0.3s ease; }
         .vaga-card.ok { border-color: rgba(57, 255, 20, 0.4); }
-        .vaga-card.ok .vc-vaga, .vaga-card.ok .vc-timer { color: var(--neon-green); }
-        .vaga-card.warn { border-color: var(--neon-yellow); background: rgba(255, 230, 0, 0.05); }
-        .vaga-card.warn .vc-vaga, .vaga-card.warn .vc-timer { color: var(--neon-yellow); }
-        .vaga-card.danger { border-color: var(--neon-red); background: rgba(255, 7, 58, 0.05); animation: neon-pulse 1.5s infinite alternate; }
-        .vaga-card.danger .vc-vaga, .vaga-card.danger .vc-timer { color: var(--neon-red); }
-
+        .vaga-card.warn { border-color: var(--neon-yellow); }
+        .vaga-card.danger { border-color: var(--neon-red); animation: neon-pulse 1.5s infinite alternate; }
         @keyframes neon-pulse { 0% { box-shadow: 0 0 10px rgba(255, 7, 58, 0.3); } 100% { box-shadow: 0 0 20px rgba(255, 7, 58, 0.6); } }
 
-        .vc-vaga { font-family: var(--font-tech); font-size: 1.6rem; font-weight: 700; }
-        .vc-timer { font-family: var(--font-tech); font-size: 2.2rem; font-weight: 700; text-align: center; }
-
-        /* Estilos Scanner */
-        #reader-in, #reader-out { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border); display: none; }
-        .btn-cam { background: #1f2937; color: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-weight: 600; width: 100%; }
-
-        .box { background: var(--surface); padding: 40px; border-radius: 16px; max-width: 650px; margin: 30px auto; text-align: center; border: 1px solid var(--border); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .box { background: var(--surface); padding: 40px; border-radius: 16px; max-width: 650px; margin: 30px auto; text-align: center; border: 1px solid var(--border); }
         input[type="text"] { font-family: var(--font-tech); width: 100%; padding: 15px; font-size: 2.5rem; background: #05080d; border: 1px solid var(--border); border-radius: 10px; color: var(--neon-green); text-align: center; margin-bottom: 20px; outline: none; }
-        .btn { background: var(--primary); color: #fff; border: none; padding: 20px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1.2rem; }
+        
+        /* Estilos do Scanner na Tela */
+        #reader-in, #reader-out { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 2px solid var(--neon-green); display: none; background: #000; }
         
         .vaga-livre-display { font-family: var(--font-tech); font-size: 5.5rem; font-weight: 700; color: var(--neon-green); text-shadow: 0 0 15px rgba(57, 255, 20, 0.6); margin-bottom: 20px; }
-
-        .view { display: none; }
-        .view.active { display: block; }
+        .btn { background: var(--primary); color: #fff; border: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; }
+        .view { display: none; } .view.active { display: block; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <h2>SPX Gestão</h2>
-        <button class="nav-btn active" onclick="show('dash')">Dashboard Neon</button>
-        <button class="nav-btn" onclick="show('in')">Check-in (Entrada)</button>
-        <button class="nav-btn" onclick="show('out')">Check-out (Saída)</button>
-        <button class="nav-btn" onclick="show('hist')">Histórico Cloud</button>
+        <button class="nav-btn active" onclick="show('dash')">Dashboard</button>
+        <button class="nav-btn" onclick="show('in')">Entrada</button>
+        <button class="nav-btn" onclick="show('out')">Saída</button>
+        <button class="nav-btn" onclick="show('hist')">Histórico</button>
         <div style="flex:1"></div>
-        <button class="nav-btn" onclick="show('cfg')">Sistema Diário</button>
+        <button class="nav-btn" onclick="show('cfg')">Reset Diário</button>
     </div>
 
     <div class="main">
         <div id="dash" class="view active">
             <div class="header"><h1>Centro de Operações - Pátio</h1><div id="relogio">00:00:00</div></div>
-            <div class="kpis">
-                <div class="card"><h3>Veículos (Máx: 100)</h3><div class="val" id="count">0</div></div>
-                <div class="card"><h3>SLA Médio (Turno)</h3><div class="val" id="avg" style="color:var(--neon-green)">00:00:00</div></div>
-            </div>
             <div id="p-grid" class="patio-grid"></div>
         </div>
 
@@ -103,45 +84,40 @@
                 <h2>Check-in Mobile</h2>
                 <div id="next-vaga" class="vaga-livre-display">--</div>
                 
-                <button class="btn-cam" onclick="startScanner('reader-in', 'in-id')">📸 Ativar Câmera (Scanner)</button>
+                <button class="btn" style="background:#1f2937; margin-bottom:15px" onclick="startScanner('reader-in', 'in-id')">📷 Ligar Scanner Traseiro</button>
                 <div id="reader-in"></div>
-
-                <input type="text" id="in-id" placeholder="BIPAR OU ESCANEAR" autofocus onkeydown="if(event.key==='Enter') doIn()">
-                <button class="btn" id="btn-in" onclick="doIn()">Confirmar Entrada</button>
-                <div id="in-msg" style="margin-top:20px; font-weight:700"></div>
+                
+                <input type="text" id="in-id" placeholder="ID" autofocus onkeydown="if(event.key==='Enter') doIn()">
+                <div id="in-msg" style="margin-top:20px; color:var(--neon-green); font-weight: bold; font-size: 1.2rem;"></div>
             </div>
         </div>
 
         <div id="out" class="view">
             <div class="box">
                 <h2>Check-out Mobile</h2>
-                <p style="margin-bottom:20px; color:var(--text-muted)">Aponte para o código para liberar a vaga</p>
                 
-                <button class="btn-cam" onclick="startScanner('reader-out', 'out-id')">📸 Ativar Câmera (Scanner)</button>
+                <button class="btn" style="background:#1f2937; margin-bottom:15px; margin-top:20px" onclick="startScanner('reader-out', 'out-id')">📷 Ligar Scanner Traseiro</button>
                 <div id="reader-out"></div>
-
-                <input type="text" id="out-id" placeholder="BIPAR OU ESCANEAR" onkeydown="if(event.key==='Enter') doOut()">
-                <button class="btn" id="btn-out" onclick="doOut()">Liberar Saída</button>
-                <div id="out-msg" style="margin-top:20px; font-weight:700"></div>
+                
+                <input type="text" id="out-id" placeholder="ID" onkeydown="if(event.key==='Enter') doOut()">
+                <div id="out-msg" style="margin-top:20px; color:var(--neon-green); font-weight: bold; font-size: 1.2rem;"></div>
             </div>
         </div>
 
         <div id="hist" class="view">
-            <div class="header"><h1>Auditoria de SLA</h1><button onclick="exportCSV()" class="btn" style="width:auto">Exportar .CSV</button></div>
-            <div id="h-list-div" style="background:var(--surface); border-radius:12px; padding:20px">
-                <table style="width:100%; border-collapse:collapse" id="h-table">
-                    <thead><tr style="text-align:left; color:var(--text-muted)"><th>Vaga</th><th>Placa</th><th>SLA Final</th></tr></thead>
-                    <tbody id="h-list"></tbody>
-                </table>
-            </div>
+            <table style="width:100%; background:var(--surface); border-radius:12px">
+                <thead><tr style="text-align:left; color:var(--text-muted)"><th>Vaga</th><th>Placa</th><th>SLA</th></tr></thead>
+                <tbody id="h-list"></tbody>
+            </table>
         </div>
 
         <div id="cfg" class="view">
-            <div class="box"><h2>Reset de Turno</h2><input type="file" id="csv-file" style="margin:20px 0"><button class="btn" onclick="importCSVCloud()">Zerar e Atualizar</button><div id="cfg-msg"></div></div>
+            <div class="box"><h2>Importar CSV</h2><input type="file" id="csv-file" style="margin:20px 0"><button class="btn" onclick="importCSVCloud()">Zerar e Atualizar</button><div id="cfg-msg"></div></div>
         </div>
     </div>
 
     <script>
+        // --- CHAVE DO FIREBASE DA SPX MG-04 ---
         const firebaseConfig = {
             apiKey: "AIzaSyAag1jI5CM0dQf468_vjiVl50xIE-vnA5g",
             authDomain: "controle-de-patio-62f46.firebaseapp.com",
@@ -153,96 +129,149 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const SLA_WARN = 900000; const SLA_DANGER = 990000; const TOTAL_VAGAS = 100;
-        let patioAtivoLocal = []; let historicoLocal = []; let scannerAtivo = null;
+        let patioAtivoLocal = []; 
+        let historicoLocal = [];
+        
+        // Variáveis globais do Scanner
+        let lastScanned = null; 
+        let scanTimeout = null;
+        let html5QrCode = null;
 
-        // --- SISTEMA DE SCANNER POR CÂMERA ---
+        // --- FUNÇÃO BEEP ---
+        function playBeep() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 880; gain.gain.value = 0.1;
+            osc.start(); setTimeout(() => osc.stop(), 150);
+        }
+
+        // --- NOVO MOTOR DO SCANNER (CÂMERA TRASEIRA + ALTA PERFORMANCE) ---
         function startScanner(elementId, inputId) {
             document.getElementById(elementId).style.display = 'block';
-            if(scannerAtivo) { scannerAtivo.clear(); }
             
-            scannerAtivo = new Html5QrcodeScanner(elementId, { fps: 10, qrbox: 250 });
-            scannerAtivo.render((text) => {
-                document.getElementById(inputId).value = text.toUpperCase();
-                if(inputId === 'in-id') doIn(); else doOut();
-                scannerAtivo.clear();
-                document.getElementById(elementId).style.display = 'none';
+            // Se já houver uma câmera aberta, desliga ela antes de iniciar a nova
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    iniciarCameraTraseira(elementId, inputId);
+                }).catch(() => { iniciarCameraTraseira(elementId, inputId); });
+            } else {
+                iniciarCameraTraseira(elementId, inputId);
+            }
+        }
+
+        function iniciarCameraTraseira(elementId, inputId) {
+            html5QrCode = new Html5Qrcode(elementId);
+            
+            // Configuração Estilo Leitor a Laser
+            const config = { 
+                fps: 30, // 30 quadros por segundo para bipe super rápido
+                qrbox: { width: 300, height: 150 } // Formato retangular ideal para código de barras
+            };
+
+            // "environment" = Câmera traseira do celular
+            html5QrCode.start({ facingMode: "environment" }, config, (text) => {
+                const id = text.toUpperCase().trim();
+                
+                // Filtro Antiduplicidade: Ignora o MESMO código por 2 segundos para não bipar dobrado
+                if (id !== lastScanned) {
+                    lastScanned = id;
+                    playBeep(); // Apita confirmando a leitura
+                    
+                    document.getElementById(inputId).value = id;
+                    
+                    // Dispara a função de entrada ou saída automaticamente
+                    if(inputId === 'in-id') doIn(); 
+                    else doOut();
+                    
+                    // Libera a trava para ler o MESMO pacote novamente após 2 segundos
+                    if(scanTimeout) clearTimeout(scanTimeout);
+                    scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
+                }
+            }).catch(err => {
+                alert("Erro ao acessar a câmera traseira. Dê permissão ao navegador.");
+                console.error(err);
             });
         }
 
-        // --- LOGICA CORE ---
+        // --- LÓGICA DO PÁTIO (MANTIDA) ---
         db.collection("patio_ativo").orderBy("vaga", "asc").onSnapshot(snap => {
-            patioAtivoLocal = []; let html = "";
-            snap.forEach(doc => {
-                const v = doc.data(); v.id = doc.id; patioAtivoLocal.push(v);
-                html += `<div class="vaga-card ok" id="card-${v.id}"><div class="vc-vaga">#${String(v.vaga).padStart(2,'0')}</div><div style="text-align:center; font-weight:700">${v.placa}</div><div class="vc-timer" id="timer-${v.id}">--:--:--</div></div>`;
+            patioAtivoLocal = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            let html = "";
+            patioAtivoLocal.forEach(v => {
+                html += `<div class="vaga-card ok" id="card-${v.id}"><div style="font-size:1.5rem; font-weight:700; color:var(--primary)">#${String(v.vaga).padStart(2,'0')}</div><div style="font-weight:700">${v.placa}</div><div id="timer-${v.id}" class="vc-timer">00:00:00</div></div>`;
             });
-            document.getElementById('p-grid').innerHTML = html || "Pátio Vazio";
+            document.getElementById('p-grid').innerHTML = html || "Galpão Operacional Vazio";
             atualizarVagaDisplay();
         });
 
-        db.collection("historico_spx").orderBy("tsSaida", "desc").onSnapshot(snap => {
-            historicoLocal = snap.docs.map(d => d.data());
-            document.getElementById('h-list').innerHTML = historicoLocal.map(r => `<tr><td>#${r.vaga}</td><td>${r.placa}</td><td>${r.permanencia}</td></tr>`).join('');
-        });
-
         function atualizarVagaDisplay() {
-            const display = document.getElementById('next-vaga');
             const ocupadas = patioAtivoLocal.map(v => v.vaga);
             let vaga = null;
-            for(let i=1; i<=TOTAL_VAGAS; i++) { if(!ocupadas.includes(i)) { vaga = i; break; } }
-            display.innerText = vaga ? `VAGA ${String(vaga).padStart(2, '0')}` : "LOTADO";
+            for(let i=1; i<=100; i++) { if(!ocupadas.includes(i)) { vaga = i; break; } }
+            document.getElementById('next-vaga').innerText = vaga ? `VAGA ${String(vaga).padStart(2,'0')}` : "LOTADO";
         }
 
         async function doIn() {
             const input = document.getElementById('in-id'); const id = input.value.trim().toUpperCase();
             if(!id) return;
+            const msgEl = document.getElementById('in-msg');
+            
             const baseDoc = await db.collection("base_motoristas").doc(id).get();
             if(baseDoc.exists) {
                 const ocupadas = patioAtivoLocal.map(v => v.vaga);
                 let vaga = null;
-                for(let i=1; i<=TOTAL_VAGAS; i++) { if(!ocupadas.includes(i)) { vaga = i; break; } }
+                for(let i=1; i<=100; i++) { if(!ocupadas.includes(i)) { vaga = i; break; } }
                 if(vaga) {
                     await db.collection("patio_ativo").doc(id).set({ placa: baseDoc.data().placa, motorista: baseDoc.data().driver, vaga, hEnt: new Date().toLocaleTimeString('pt-BR'), tsEnt: Date.now() });
-                    document.getElementById('in-msg').innerText = "ENTRADA OK: " + baseDoc.data().placa;
+                    msgEl.style.color = "var(--neon-green)";
+                    msgEl.innerText = "ENTRADA CONCLUÍDA: " + baseDoc.data().placa;
+                } else {
+                    msgEl.style.color = "var(--neon-red)";
+                    msgEl.innerText = "PÁTIO LOTADO!";
                 }
+            } else { 
+                msgEl.style.color = "var(--neon-red)";
+                msgEl.innerText = "ID INVÁLIDO NA BASE"; 
             }
-            input.value = ''; setTimeout(() => input.focus(), 3000);
+            
+            // Limpa a tela após 2 segundos
+            setTimeout(() => { msgEl.innerText = ""; input.value = ''; }, 2000);
         }
 
         async function doOut() {
             const input = document.getElementById('out-id'); const id = input.value.trim().toUpperCase();
+            const msgEl = document.getElementById('out-msg');
+            
             const doc = await db.collection("patio_ativo").doc(id).get();
             if(doc.exists) {
                 const v = doc.data(); const t = Date.now() - v.tsEnt;
                 await db.collection("historico_spx").add({ ...v, saida: new Date().toLocaleTimeString('pt-BR'), permanencia: msToTime(t), msTotal: t, tsSaida: Date.now() });
                 await db.collection("patio_ativo").doc(id).delete();
-                document.getElementById('out-msg').innerText = "SAÍDA OK: " + v.placa;
+                
+                msgEl.style.color = "var(--neon-green)";
+                msgEl.innerText = "SAÍDA CONCLUÍDA: " + v.placa;
+            } else {
+                msgEl.style.color = "var(--neon-red)";
+                msgEl.innerText = "NÃO ESTÁ NO PÁTIO";
             }
-            input.value = ''; setTimeout(() => input.focus(), 3000);
+            
+            // Limpa a tela após 2 segundos
+            setTimeout(() => { msgEl.innerText = ""; input.value = ''; }, 2000);
         }
-
-        async function importCSVCloud() { /* (Mantida a lógica de batch anterior) */ }
 
         function show(id) { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function msToTime(ms) { let s = Math.floor((ms/1000)%60), m = Math.floor((ms/(1000*60))%60), h = Math.floor((ms/(1000*60*60))%24); return [h,m,s].map(v => String(v).padStart(2,'0')).join(':'); }
 
         setInterval(() => {
             document.getElementById('relogio').innerText = new Date().toLocaleTimeString('pt-BR');
-            let soma = 0;
             patioAtivoLocal.forEach(v => {
-                const t = Date.now() - v.tsEnt; soma += t;
+                const t = Date.now() - v.tsEnt;
                 const el = document.getElementById(`timer-${v.id}`);
-                const card = document.getElementById(`card-${v.id}`);
-                if(el) { 
-                    el.innerText = msToTime(t);
-                    card.className = `vaga-card ${t > SLA_DANGER ? 'danger' : (t > SLA_WARN ? 'warn' : 'ok')}`;
-                }
+                if(el) el.innerText = msToTime(t);
             });
-            historicoLocal.forEach(h => soma += h.msTotal);
-            const total = patioAtivoLocal.length + historicoLocal.length;
-            document.getElementById('count').innerText = patioAtivoLocal.length;
-            document.getElementById('avg').innerText = total > 0 ? msToTime(soma/total) : "00:00:00";
         }, 1000);
     </script>
 </body>
