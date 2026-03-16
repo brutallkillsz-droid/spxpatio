@@ -452,6 +452,7 @@
             for (let b of batches) await b.commit();
         }
 
+        // --- CORREÇÃO DA IMPORTAÇÃO COM TRATAMENTO DE ERROS APRIMORADO ---
         async function importCSVCloud() {
             const file = document.getElementById('csv-file').files[0];
             const msg = document.getElementById('cfg-msg');
@@ -471,40 +472,48 @@
 
                 const reader = new FileReader();
                 reader.onload = async (e) => {
-                    const linhas = e.target.result.split(/\r?\n/);
-                    let sep = linhas[0].includes(';') ? ';' : ',';
-                    let chunks = []; let currentChunk = []; let count = 0;
+                    try {
+                        const linhas = e.target.result.split(/\r?\n/);
+                        let sep = linhas[0].includes(';') ? ';' : ',';
+                        let chunks = []; let currentChunk = []; let count = 0;
 
-                    linhas.slice(1).forEach(l => {
-                        const c = l.split(sep);
-                        if(c[0] && c[0].trim() !== "") {
-                            currentChunk.push({
-                                id: c[0].trim().toUpperCase(),
-                                driver: c[1]?.replace(/["']/g, '').trim() || "Sem Nome",
-                                placa: c[45]?.replace(/["']/g, '').trim().toUpperCase() || c[c.length-1]?.trim().toUpperCase()
-                            });
-                            count++;
-                            if(currentChunk.length === 450) { chunks.push(currentChunk); currentChunk = []; }
-                        }
-                    });
-                    if(currentChunk.length > 0) chunks.push(currentChunk);
-
-                    for (const chunk of chunks) {
-                        const batch = db.batch();
-                        chunk.forEach(data => {
-                            const ref = db.collection("base_motoristas").doc(data.id);
-                            batch.set(ref, { driver: data.driver, placa: data.placa });
+                        linhas.slice(1).forEach(l => {
+                            const c = l.split(sep);
+                            if(c[0] && c[0].trim() !== "") {
+                                currentChunk.push({
+                                    id: c[0].trim().toUpperCase(),
+                                    driver: c[1]?.replace(/["']/g, '').trim() || "Sem Nome",
+                                    placa: c[45]?.replace(/["']/g, '').trim().toUpperCase() || c[c.length-1]?.trim().toUpperCase()
+                                });
+                                count++;
+                                if(currentChunk.length === 450) { chunks.push(currentChunk); currentChunk = []; }
+                            }
                         });
-                        await batch.commit();
+                        if(currentChunk.length > 0) chunks.push(currentChunk);
+
+                        for (const chunk of chunks) {
+                            const batch = db.batch();
+                            chunk.forEach(data => {
+                                const ref = db.collection("base_motoristas").doc(data.id);
+                                batch.set(ref, { driver: data.driver, placa: data.placa });
+                            });
+                            await batch.commit();
+                        }
+                        msg.style.color = "var(--neon-green)";
+                        msg.innerText = `SISTEMA PRONTO! ${count} MOTORISTAS.`;
+                        btn.disabled = false;
+                        
+                    } catch (erroInterno) {
+                        msg.style.color = "var(--neon-red)";
+                        msg.innerText = "ERRO AO SALVAR DADOS: " + erroInterno.message;
+                        btn.disabled = false;
                     }
-                    msg.style.color = "var(--neon-green)";
-                    msg.innerText = `SISTEMA PRONTO! ${count} MOTORISTAS.`;
-                    btn.disabled = false;
                 };
                 reader.readAsText(file, 'UTF-8');
+                
             } catch (error) {
                 msg.style.color = "var(--neon-red)";
-                msg.innerText = "ERRO: " + error.message;
+                msg.innerText = "ERRO AO LIMPAR BANCO: " + error.message;
                 btn.disabled = false;
             }
         }
