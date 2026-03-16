@@ -50,7 +50,7 @@
         /* --- Menu Lateral --- */
         .sidebar { width: 250px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px 0; z-index: 10; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
         
-        /* --- BRANDING SPX GESTÃO (DESIGN SHOPEE NEON) --- */
+        /* --- BRANDING SPX GESTÃO --- */
         .sidebar h2 { 
             text-align: center; 
             color: #fff; 
@@ -159,7 +159,6 @@
         #in .btn, #out .btn { font-size: 1.2rem; padding: 20px 30px; border-radius: 10px; }
         #out-msg, #in-msg { margin-top: 25px; font-weight: 700; font-size: 1.2rem; line-height: 1.4; min-height: 50px; }
         
-        /* O visor da câmera agora fica com o design limpo */
         #reader-in, #reader-out { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 2px solid var(--neon-green); display: none; background: #000; }
 
         /* --- TEXTO NEON GIGANTE PARA A VAGA DISPONÍVEL --- */
@@ -296,7 +295,7 @@
             osc.start(); setTimeout(() => osc.stop(), 150);
         }
 
-        // --- MOTOR DO SCANNER OTIMIZADO PARA CÓDIGO DE BARRAS LOGÍSTICO ---
+        // --- MOTOR DO SCANNER OTIMIZADO PARA CÓDIGO DE BARRAS LOGÍSTICO E RESOLUÇÃO HD ---
         function startScanner(elementId, inputId) {
             document.getElementById(elementId).style.display = 'block';
             
@@ -313,19 +312,19 @@
         function iniciarCameraTraseira(elementId, inputId) {
             html5QrCode = new Html5Qrcode(elementId);
             
-            // Configuração Otimizada (10 FPS + Formatos Logísticos)
+            // Configuração Otimizada: Sem limite rígido de formato para não bloquear leituras da Shopee
             const config = { 
-                fps: 10, 
-                qrbox: { width: 300, height: 150 },
-                formatsToSupport: [ 
-                    Html5QrcodeSupportedFormats.CODE_128, 
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.QR_CODE
-                ]
+                fps: 10, // Menos FPS dá tempo do celular focar as linhas do código de barras
+                qrbox: { width: window.innerWidth > 400 ? 300 : 250, height: 150 }
             };
 
-            html5QrCode.start({ facingMode: "environment" }, config, (text) => {
+            // Forçando a câmera traseira e pedindo resolução HD para melhorar a nitidez
+            const cameraConfig = {
+                facingMode: "environment",
+                video: { width: { ideal: 1280 }, height: { ideal: 720 } }
+            };
+
+            html5QrCode.start(cameraConfig, config, (text) => {
                 const id = text.toUpperCase().trim();
                 
                 // Trava Antiduplicidade de 2 segundos para o mesmo código
@@ -342,8 +341,21 @@
                     scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
                 }
             }).catch(err => {
-                alert("Erro ao acessar a câmera traseira. Dê permissão ao navegador.");
-                console.error(err);
+                // Fallback caso o celular não suporte o pedido em HD
+                html5QrCode.start({ facingMode: "environment" }, config, (text) => {
+                    const id = text.toUpperCase().trim();
+                    if (id !== lastScanned) {
+                        lastScanned = id;
+                        playBeep(); 
+                        document.getElementById(inputId).value = id;
+                        if(inputId === 'in-id') doIn(); else doOut();
+                        if(scanTimeout) clearTimeout(scanTimeout);
+                        scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
+                    }
+                }).catch(err2 => {
+                    alert("Erro ao acessar a câmera traseira. Dê permissão ao navegador.");
+                    console.error(err2);
+                });
             });
         }
 
@@ -452,7 +464,7 @@
             for (let b of batches) await b.commit();
         }
 
-        // --- CORREÇÃO DA IMPORTAÇÃO COM TRATAMENTO DE ERROS APRIMORADO ---
+        // --- CORREÇÃO DA IMPORTAÇÃO COM TRATAMENTO DE ERROS ---
         async function importCSVCloud() {
             const file = document.getElementById('csv-file').files[0];
             const msg = document.getElementById('cfg-msg');
