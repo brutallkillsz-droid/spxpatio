@@ -151,15 +151,63 @@
         .btn:hover:not(:disabled) { background: #ff7454; box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-2px); }
         .btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
+        /* ========================================================
+           NOVO DESIGN DOS BOTÕES (FOCO NA CORRERIA DA OPERAÇÃO)
+           ======================================================== */
+        
+        /* Botão de Câmera (Gigante e Tátil) */
+        .btn-cam {
+            background: #1f2937;
+            color: #fff;
+            border: 2px solid var(--border);
+            padding: 22px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            width: 100%;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+        }
+        .btn-cam:hover { border-color: var(--primary); background: #2d3748; }
+        .btn-cam:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+
+        /* Botões de Ação Principal (Confirmar Entrada / Saída) */
+        #in .btn, #out .btn { 
+            font-size: 1.4rem; 
+            padding: 25px 20px; /* Bem alto para facilitar o clique */
+            border-radius: 12px; 
+            font-weight: 700;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(255, 90, 54, 0.4); /* Efeito saltado */
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        #in .btn:hover, #out .btn:hover {
+            box-shadow: 0 10px 30px rgba(255, 90, 54, 0.6);
+            transform: translateY(-3px);
+        }
+        /* Efeito de afundar ao clicar (Garante o feedback tátil) */
+        #in .btn:active, #out .btn:active {
+            transform: scale(0.96); 
+            box-shadow: 0 4px 10px rgba(255, 90, 54, 0.3);
+        }
+
         /* --- EXCLUSIVO: AMPLIAÇÃO DOS CARDS E SCANNER DE CHECK-IN / CHECK-OUT --- */
         #in .box, #out .box { max-width: 650px; padding: 60px 50px; }
-        #in h2, #out h2 { font-size: 2.2rem; margin-bottom: 10px; }
-        #out p { font-size: 1.1rem; margin-bottom: 45px; }
-        #in input[type="text"], #out input[type="text"] { font-size: 2.8rem; padding: 22px; margin-bottom: 30px; border-radius: 12px; }
-        #in .btn, #out .btn { font-size: 1.2rem; padding: 20px 30px; border-radius: 10px; }
+        #in h2, #out h2 { font-size: 2.2rem; margin-bottom: 15px; }
+        #out p { font-size: 1.1rem; margin-bottom: 35px; }
+        #in input[type="text"], #out input[type="text"] { font-size: 2.8rem; padding: 25px; margin-bottom: 35px; border-radius: 12px; }
         #out-msg, #in-msg { margin-top: 25px; font-weight: 700; font-size: 1.2rem; line-height: 1.4; min-height: 50px; }
         
-        #reader-in, #reader-out { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 2px solid var(--neon-green); display: none; background: #000; }
+        /* O visor da câmera agora fica com o design limpo */
+        #reader-in, #reader-out { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 25px; border: 3px solid var(--primary); display: none; background: #000; box-shadow: 0 0 20px rgba(255, 90, 54, 0.2); }
 
         /* --- TEXTO NEON GIGANTE PARA A VAGA DISPONÍVEL --- */
         .vaga-livre-label { font-size: 1.1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: -5px; margin-top: 25px;}
@@ -235,9 +283,13 @@
             #in .box, #out .box, .box { padding: 25px 15px; margin: 10px auto; width: 100%; max-width: 100%; }
             #in h2, #out h2 { font-size: 1.8rem; }
             .vaga-livre-display { font-size: 4rem; margin: 10px 0 25px 0; }
-            #in input[type="text"], #out input[type="text"], input[type="text"] { font-size: 1.8rem; padding: 12px; margin-bottom: 20px; }
-            #in .btn, #out .btn, .btn { font-size: 1rem; padding: 15px; }
-            #out-msg, #in-msg { font-size: 1rem; min-height: 40px; margin-top: 15px; }
+            
+            /* Manter inputs e botões gigantes no mobile para evitar erros ao tocar */
+            #in input[type="text"], #out input[type="text"], input[type="text"] { font-size: 2rem; padding: 15px; margin-bottom: 25px; }
+            #in .btn, #out .btn, .btn { font-size: 1.2rem; padding: 22px; font-weight: bold; }
+            .btn-cam { padding: 20px; font-size: 1.1rem; }
+            
+            #out-msg, #in-msg { font-size: 1.1rem; min-height: 40px; margin-top: 15px; }
 
             /* Auditoria Header */
             #hist .header div { flex-direction: column; width: 100%; }
@@ -275,7 +327,7 @@
                 <div class="vaga-livre-label">DIRECIONAR MOTORISTA PARA:</div>
                 <div id="next-vaga" class="vaga-livre-display">--</div>
 
-                <button class="btn" style="background:#1f2937; margin-bottom:15px" onclick="startScanner('reader-in', 'in-id')">📷 Ligar Scanner Traseiro</button>
+                <button class="btn-cam" onclick="startScanner('reader-in', 'in-id')">📸 Ligar Scanner Traseiro</button>
                 <div id="reader-in"></div>
 
                 <input type="text" id="in-id" placeholder="BIPAR ID" autofocus onkeydown="if(event.key==='Enter') doIn()">
@@ -289,7 +341,7 @@
                 <h2>Check-out Mobile</h2>
                 <p>Aponte a câmera para a etiqueta para dar baixa instantânea.</p>
                 
-                <button class="btn" style="background:#1f2937; margin-bottom:15px; margin-top:20px" onclick="startScanner('reader-out', 'out-id')">📷 Ligar Scanner Traseiro</button>
+                <button class="btn-cam" onclick="startScanner('reader-out', 'out-id')">📸 Ligar Scanner Traseiro</button>
                 <div id="reader-out"></div>
 
                 <input type="text" id="out-id" placeholder="BIPAR ID" onkeydown="if(event.key==='Enter') doOut()">
@@ -398,7 +450,6 @@
         function iniciarCameraTraseira(elementId, inputId) {
             html5QrCode = new Html5Qrcode(elementId);
             
-            // Ajusta o tamanho da área de leitura baseado na tela do celular
             const qrWidth = window.innerWidth < 500 ? 250 : 300;
             const config = { 
                 fps: 10, 
@@ -430,7 +481,6 @@
 
         // --- LÓGICA DE NAVEGAÇÃO E DESLIGAMENTO DA CÂMERA ---
         function show(id) { 
-            // Desliga a câmera automaticamente se o usuário mudar de tela
             if (html5QrCode && isCameraOn) {
                 html5QrCode.stop().then(() => {
                     html5QrCode.clear();
