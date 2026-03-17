@@ -48,7 +48,7 @@
         }
 
         /* --- Menu Lateral --- */
-        .sidebar { width: 250px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px 0; z-index: 10; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+        .sidebar { width: 250px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px 0; z-index: 10; box-shadow: 5px 0 20px rgba(0,0,0,0.5); transition: all 0.3s ease; }
         
         /* --- BRANDING SPX GESTÃO --- */
         .sidebar h2 { 
@@ -79,14 +79,14 @@
         .nav-btn.active { color: #fff; border-left-color: var(--primary); background: linear-gradient(90deg, rgba(255, 90, 54, 0.1) 0%, transparent 100%); font-weight: 600; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
 
         /* --- Área Principal --- */
-        .main { flex: 1; padding: 25px 40px; overflow-y: auto; }
+        .main { flex: 1; padding: 25px 40px; overflow-y: auto; transition: all 0.3s ease; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .header h1 { font-size: 1.5rem; font-weight: 600; color: #fff; letter-spacing: 1px; }
         #relogio { font-family: var(--font-tech); font-size: 2rem; color: var(--primary); background: var(--surface); padding: 5px 20px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 0 15px rgba(0,0,0,0.5); letter-spacing: 2px; text-shadow: 0 0 8px var(--primary-glow); }
 
         /* --- Cards de KPI --- */
         .kpis { display: flex; gap: 15px; margin-bottom: 25px; }
-        .card { background: var(--surface); padding: 12px 18px; border-radius: 10px; border-top: 2px solid var(--primary); flex: 0 1 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .card { background: var(--surface); padding: 12px 18px; border-radius: 10px; border-top: 2px solid var(--primary); flex: 1; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .card h3 { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 1px; }
         .card .val { font-family: var(--font-tech); font-size: 2rem; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
@@ -118,8 +118,8 @@
         .vc-timer { font-family: var(--font-tech); font-size: 2.2rem; font-weight: 700; letter-spacing: 1px; }
 
         /* --- Tabelas Dark --- */
-        .table-wrap { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        table { width: 100%; border-collapse: collapse; }
+        .table-wrap { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #0b111a; color: var(--text-muted); padding: 12px 20px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
         td { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; color: #cbd5e1; }
         
@@ -138,7 +138,7 @@
         .view.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .box { background: var(--surface); padding: 40px; border-radius: 16px; max-width: 450px; margin: 30px auto; text-align: center; border: 1px solid var(--border); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .box { background: var(--surface); padding: 40px; border-radius: 16px; max-width: 450px; margin: 30px auto; text-align: center; border: 1px solid var(--border); box-shadow: 0 15px 30px rgba(0,0,0,0.5); transition: all 0.3s ease; }
         .box h2 { font-size: 1.5rem; margin-bottom: 5px; }
         
         input[type="text"] { font-family: var(--font-tech); width: 100%; padding: 15px; font-size: 2rem; background: #05080d; border: 1px solid var(--border); border-radius: 10px; color: var(--neon-green); text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; outline: none; transition: 0.3s; text-shadow: 0 0 5px rgba(57,255,20,0.3); }
@@ -174,9 +174,74 @@
             letter-spacing: 2px;
             animation: pulse-vaga 2s infinite alternate;
         }
-        @keyframes pulse-vaga {
-            0% { text-shadow: 0 0 10px rgba(57, 255, 20, 0.4); }
-            100% { text-shadow: 0 0 25px rgba(57, 255, 20, 0.8), 0 0 40px rgba(57, 255, 20, 0.4); }
+
+        /* ========================================================
+           MEDIA QUERIES (DESIGN RESPONSIVO PARA CELULARES E TABLETS)
+           ======================================================== */
+        @media (max-width: 768px) {
+            body { 
+                flex-direction: column; 
+            }
+            
+            /* Sidebar vira um Menu no Topo */
+            .sidebar { 
+                width: 100%; 
+                flex-direction: row; 
+                flex-wrap: wrap; 
+                padding: 10px 15px; 
+                align-items: center; 
+                justify-content: center;
+                border-right: none; 
+                border-bottom: 1px solid var(--border); 
+            }
+            
+            .sidebar h2 { 
+                width: 100%; 
+                margin-bottom: 10px; 
+                font-size: 1.5rem; 
+            }
+            
+            .nav-btn { 
+                flex: 1; 
+                text-align: center; 
+                padding: 10px 5px; 
+                font-size: 0.85rem; 
+                border-left: none; 
+                border-bottom: 3px solid transparent; 
+                white-space: nowrap; 
+            }
+            
+            .nav-btn.active { 
+                border-left-color: transparent; 
+                border-bottom-color: var(--primary); 
+                background: rgba(255,255,255,0.05); 
+            }
+
+            .main { padding: 15px; }
+            
+            /* Ajustes nos Títulos e Relógio */
+            .header { flex-direction: column; gap: 15px; text-align: center; }
+            .header h1 { font-size: 1.3rem; }
+            #relogio { font-size: 1.5rem; padding: 5px 15px; }
+
+            /* Ajustes nos KPIs */
+            .kpis { flex-direction: column; gap: 10px; }
+            .card .val { font-size: 1.8rem; }
+
+            /* Ajustes no Grid de Vagas */
+            .patio-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+
+            /* Redimensionando os Formulários e Câmera para Mobile */
+            #in .box, #out .box, .box { padding: 25px 15px; margin: 10px auto; width: 100%; max-width: 100%; }
+            #in h2, #out h2 { font-size: 1.8rem; }
+            .vaga-livre-display { font-size: 4rem; margin: 10px 0 25px 0; }
+            #in input[type="text"], #out input[type="text"], input[type="text"] { font-size: 1.8rem; padding: 12px; margin-bottom: 20px; }
+            #in .btn, #out .btn, .btn { font-size: 1rem; padding: 15px; }
+            #out-msg, #in-msg { font-size: 1rem; min-height: 40px; margin-top: 15px; }
+
+            /* Auditoria Header */
+            #hist .header div { flex-direction: column; width: 100%; }
+            .hist-kpi { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -185,12 +250,12 @@
     <div class="sidebar">
         <h2>SPX Gestão</h2>
         
-        <button class="nav-btn active" onclick="show('dash')">Dashboard Neon</button>
-        <button class="nav-btn" onclick="show('in')">Check-in (Entrada)</button>
-        <button class="nav-btn" onclick="show('out')">Check-out (Saída)</button>
-        <button class="nav-btn" onclick="show('hist')">Histórico Cloud</button>
+        <button class="nav-btn active" onclick="show('dash')">Dashboard</button>
+        <button class="nav-btn" onclick="show('in')">Entrada</button>
+        <button class="nav-btn" onclick="show('out')">Saída</button>
+        <button class="nav-btn" onclick="show('hist')">Auditoria</button>
         <div style="flex:1"></div>
-        <button class="nav-btn" onclick="show('cfg')">Sistema Diário</button>
+        <button class="nav-btn" onclick="show('cfg')">Reset</button>
     </div>
 
     <div class="main">
@@ -215,7 +280,7 @@
 
                 <input type="text" id="in-id" placeholder="BIPAR ID" autofocus onkeydown="if(event.key==='Enter') doIn()">
                 <button class="btn" id="btn-in" onclick="doIn()">Confirmar Entrada</button>
-                <div id="in-msg" style="margin-top:20px; color:var(--neon-green); font-weight: bold; font-size: 1.2rem;"></div>
+                <div id="in-msg"></div>
             </div>
         </div>
 
@@ -229,7 +294,7 @@
 
                 <input type="text" id="out-id" placeholder="BIPAR ID" onkeydown="if(event.key==='Enter') doOut()">
                 <button class="btn" id="btn-out" onclick="doOut()">Confirmar Saída</button>
-                <div id="out-msg" style="margin-top:20px; color:var(--neon-green); font-weight: bold; font-size: 1.2rem;"></div>
+                <div id="out-msg"></div>
             </div>
         </div>
 
@@ -285,6 +350,7 @@
         let scanTimeout = null;
         let html5QrCode = null;
         let audioCtx = null;
+        let isCameraOn = false;
 
         // --- SISTEMA DE ÁUDIO DESBLOQUEADO PARA CELULAR ---
         function initAudio() {
@@ -302,26 +368,24 @@
                 const gain = audioCtx.createGain();
                 osc.connect(gain); 
                 gain.connect(audioCtx.destination);
-                osc.frequency.value = 880; // Frequência aguda do laser
-                gain.gain.value = 0.5; // Volume mais alto
+                osc.frequency.value = 880; 
+                gain.gain.value = 0.5; 
                 osc.start(); 
                 setTimeout(() => osc.stop(), 150);
             }
             
-            // Ativa a vibração do celular (150 milissegundos)
             if (navigator.vibrate) {
                 navigator.vibrate(150);
             }
         }
 
-        // --- MOTOR DO SCANNER COM BIPE E VIBRAÇÃO ---
+        // --- MOTOR DO SCANNER RESPONSIVO ---
         function startScanner(elementId, inputId) {
-            // Destrava o áudio do celular assim que o usuário clica no botão
             initAudio();
             
             document.getElementById(elementId).style.display = 'block';
             
-            if (html5QrCode) {
+            if (html5QrCode && isCameraOn) {
                 html5QrCode.stop().then(() => {
                     html5QrCode.clear();
                     iniciarCameraTraseira(elementId, inputId);
@@ -334,9 +398,11 @@
         function iniciarCameraTraseira(elementId, inputId) {
             html5QrCode = new Html5Qrcode(elementId);
             
+            // Ajusta o tamanho da área de leitura baseado na tela do celular
+            const qrWidth = window.innerWidth < 500 ? 250 : 300;
             const config = { 
                 fps: 10, 
-                qrbox: { width: 300, height: 150 }
+                qrbox: { width: qrWidth, height: 150 }
             };
 
             html5QrCode.start({ facingMode: "environment" }, config, (text) => {
@@ -344,7 +410,7 @@
                 
                 if (id !== lastScanned) {
                     lastScanned = id;
-                    playBeep(); // <--- Toca o som e vibra o celular
+                    playBeep(); 
                     
                     document.getElementById(inputId).value = id;
                     
@@ -354,10 +420,32 @@
                     if(scanTimeout) clearTimeout(scanTimeout);
                     scanTimeout = setTimeout(() => { lastScanned = null; }, 2000);
                 }
+            }).then(() => {
+                isCameraOn = true;
             }).catch(err => {
-                alert("Erro ao abrir a câmera. Verifique as permissões do navegador.");
+                alert("Erro ao abrir a câmera: " + err);
                 console.error(err);
             });
+        }
+
+        // --- LÓGICA DE NAVEGAÇÃO E DESLIGAMENTO DA CÂMERA ---
+        function show(id) { 
+            // Desliga a câmera automaticamente se o usuário mudar de tela
+            if (html5QrCode && isCameraOn) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    isCameraOn = false;
+                    document.getElementById('reader-in').style.display = 'none';
+                    document.getElementById('reader-out').style.display = 'none';
+                }).catch(err => console.log(err));
+            }
+
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); 
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            event.target.classList.add('active'); 
+            const focusId = id === 'in' ? 'in-id' : (id === 'out' ? 'out-id' : null);
+            if(focusId) setTimeout(() => document.getElementById(focusId).focus(), 100);
         }
 
         // --- LÓGICA DO PÁTIO ---
@@ -571,7 +659,7 @@
                             });
                             
                             msgEl.style.color = 'var(--neon-green)'; 
-                            msgEl.innerHTML = `ENTRADA CONCLUÍDA!<br><span style="color:#fff; font-size: 1rem;">PLACA: ${driverData.placa} | MOTORISTA: ${driverData.driver}</span>`;
+                            msgEl.innerHTML = `ENTRADA CONCLUÍDA!<br><span style="color:#fff; font-size: 1.2rem;">PLACA: ${driverData.placa} | MOTORISTA: ${driverData.driver}</span>`;
                         }
                     } else {
                         msgEl.style.color = 'var(--neon-red)'; msgEl.innerText = "ID NÃO ENCONTRADO NA BASE!";
@@ -635,15 +723,6 @@
             }, 3000);
         }
 
-        function show(id) { 
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); 
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); 
-            document.getElementById(id).classList.add('active'); 
-            event.target.classList.add('active'); 
-            const focusId = id === 'in' ? 'in-id' : (id === 'out' ? 'out-id' : null);
-            if(focusId) setTimeout(() => document.getElementById(focusId).focus(), 100);
-        }
-        
         function msToTime(ms) { 
             let s = Math.floor((ms/1000)%60), m = Math.floor((ms/(1000*60))%60), h = Math.floor((ms/(1000*60*60))%24);
             return [h,m,s].map(v => String(v).padStart(2,'0')).join(':');
